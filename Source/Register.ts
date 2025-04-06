@@ -1,7 +1,5 @@
-declare global {
-	interface Window {
-		WORKER_CODE_EDITOR_LAND?: string;
-	}
+interface Window {
+	WORKER_CODE_EDITOR_LAND?: string;
 }
 
 const Path =
@@ -41,5 +39,3 @@ if ("serviceWorker" in navigator) {
 } else {
 	console.warn("[App /VSCode] Service Worker not supported.");
 }
-
-export default {};

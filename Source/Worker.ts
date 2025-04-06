@@ -16,58 +16,55 @@ const SHIM_URL_TO_CACHE_PATH_MAP: {
 	"/Static/Shim/Variable.js": "/Static/Shim/Variable.js",
 };
 
-self.addEventListener(
-	"install",
-	(Event) =>
-		console.log(`[SW ${SCRIPT_VERSION}] Installing...`) &&
-		Event.waitUntil(
-			caches
-				.open(SHIM_CACHE_NAME)
-				.then(
-					(Cache) =>
-						console.log(
-							`[SW ${SCRIPT_VERSION}] Precaching shims:`,
-							SHIM_FILES_TO_PRECACHE,
-						) && Cache.addAll(SHIM_FILES_TO_PRECACHE),
-				)
+self.addEventListener("install", (Event) => {
+	console.log(`[SW ${SCRIPT_VERSION}] Installing...`);
 
-				.then(() => self.skipWaiting())
-				.catch((_Error) =>
-					console.error(
-						`[SW ${SCRIPT_VERSION}] Shim Precaching failed:`,
-						_Error,
-					),
-				),
-		),
-);
+	Event.waitUntil(
+		caches
+			.open(SHIM_CACHE_NAME)
+			.then((Cache) => {
+				console.log(
+					`[SW ${SCRIPT_VERSION}] Precaching shims:`,
+					SHIM_FILES_TO_PRECACHE,
+				);
 
-self.addEventListener(
-	"activate",
-	(Event) =>
-		console.log(`[SW ${SCRIPT_VERSION}] Activating...`) &&
-		Event.waitUntil(
-			Promise.all([
-				caches.keys().then((Name) => {
-					return Promise.all(
-						Name.map((Name) =>
-							!ALL_CACHES.includes(Name)
-								? console.log(
-										`[SW ${SCRIPT_VERSION}] Deleting old cache: ${Name}`,
-									) && caches.delete(Name)
-								: null,
-						),
-					);
-				}),
-
-				self.clients.claim(),
-			]).catch((_Error) =>
+				Cache.addAll(SHIM_FILES_TO_PRECACHE);
+			})
+			.then(() => self.skipWaiting())
+			.catch((_Error) =>
 				console.error(
-					`[SW ${SCRIPT_VERSION}] Activation failed:`,
+					`[SW ${SCRIPT_VERSION}] Shim Precaching failed:`,
 					_Error,
 				),
 			),
+	);
+});
+
+self.addEventListener("activate", (Event) => {
+	console.log(`[SW ${SCRIPT_VERSION}] Activating...`);
+
+	Event.waitUntil(
+		Promise.all([
+			caches.keys().then((Name) => {
+				return Promise.all(
+					Name.map((Name) => {
+						if (!ALL_CACHES.includes(Name)) {
+							console.log(
+								`[SW ${SCRIPT_VERSION}] Deleting old cache: ${Name}`,
+							);
+
+							caches.delete(Name);
+						}
+					}),
+				);
+			}),
+
+			self.clients.claim(),
+		]).catch((_Error) =>
+			console.error(`[SW ${SCRIPT_VERSION}] Activation failed:`, _Error),
 		),
-);
+	);
+});
 
 self.addEventListener("fetch", (Event) => {
 	const _URL = new URL(Event.request.url);
@@ -104,23 +101,27 @@ self.addEventListener("fetch", (Event) => {
 			caches
 				.open(SHIM_CACHE_NAME)
 				.then((Cache) => Cache.match(PathCache))
-				.then((Response) =>
-					Response
-						? Response
-						: console.warn(
-								`[SW ${SCRIPT_VERSION}] Shim not found in cache: ${Path}. Fetching from network...`,
-							) && fetch(PathCache),
-				)
-				.catch(
-					(_Error) =>
-						console.error(
-							`[SW ${SCRIPT_VERSION}] Error serving shim ${Path}:`,
-							_Error,
-						) &&
-						new Response(`Error serving shim ${Path}`, {
-							status: 500,
-						}),
-				),
+				.then((Response) => {
+					if (Response) {
+						return Response;
+					}
+
+					console.warn(
+						`[SW ${SCRIPT_VERSION}] Shim not found in cache: ${Path}. Fetching from network...`,
+					);
+
+					return fetch(PathCache);
+				})
+				.catch((_Error) => {
+					console.error(
+						`[SW ${SCRIPT_VERSION}] Error serving shim ${Path}:`,
+						_Error,
+					);
+
+					return new Response(`Error serving shim ${Path}`, {
+						status: 500,
+					});
+				}),
 		);
 
 		return;
@@ -167,11 +168,11 @@ self.addEventListener("fetch", (Event) => {
 					const Cached = await Cache.match(Request);
 
 					if (Cached) {
-						return (
-							console.log(
-								`[SW ${SCRIPT_VERSION}] Serving asset from cache: ${Path}`,
-							) && Cached
+						console.log(
+							`[SW ${SCRIPT_VERSION}] Serving asset from cache: ${Path}`,
 						);
+
+						return Cached;
 					}
 
 					console.log(
@@ -195,24 +196,24 @@ self.addEventListener("fetch", (Event) => {
 
 						return Network;
 					} catch (_Error) {
-						return (
-							console.error(
-								`[SW ${SCRIPT_VERSION}] Network fetch failed for ${Path}:`,
-								_Error,
-							) &&
-							new Response(`Failed to fetch asset ${Path}`, {
-								status: 503,
-							})
+						console.error(
+							`[SW ${SCRIPT_VERSION}] Network fetch failed for ${Path}:`,
+							_Error,
 						);
+
+						return new Response(`Failed to fetch asset ${Path}`, {
+							status: 503,
+						});
 					}
 				})
-				.catch(
-					(_Error) =>
-						console.error(
-							`[SW ${SCRIPT_VERSION}] Error accessing asset cache:`,
-							_Error,
-						) && fetch(Request),
-				),
+				.catch((_Error) => {
+					console.error(
+						`[SW ${SCRIPT_VERSION}] Error accessing asset cache:`,
+						_Error,
+					);
+
+					return fetch(Request);
+				}),
 		);
 
 		return;

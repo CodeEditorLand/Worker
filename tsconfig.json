@@ -4,9 +4,11 @@
 		"baseUrl": "./",
 		"outDir": "Target",
 		"rootDir": "Source",
-		"lib": ["DOM", "DOM.Iterable", "ESNext", "WebWorker"]
+		"lib": ["ESNext", "WebWorker"],
+		"target": "ESNext",
+		"moduleResolution": "Bundler",
+		"module": "ESNext"
 	},
-
 	"extends": "@playform/build/tsconfig",
 	"include": ["Source", "@types/serviceworker"],
 	"exclude": ["Target"]
