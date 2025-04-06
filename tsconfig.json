@@ -1,0 +1,13 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"compilerOptions": {
+		"baseUrl": "./",
+		"outDir": "Target",
+		"rootDir": "Source",
+		"lib": ["DOM", "DOM.Iterable", "ESNext", "WebWorker"]
+	},
+
+	"extends": "@playform/build/tsconfig",
+	"include": ["Source", "@types/serviceworker"],
+	"exclude": ["Target"]
+}
