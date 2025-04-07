@@ -106,13 +106,13 @@ self.addEventListener("fetch", (Event) => {
 
 	const Client = Event.clientId;
 
-	// Log(`Fetch event for: ${Path}`, {
-	// 	Method: Request.method,
-	// 	Destination: Request.destination,
-	// 	URL: Request.url,
-	// 	Origin: _URL.origin,
-	// 	Scope: self.registration.scope,
-	// });
+	Log(`Fetch event for: ${Path}`, {
+		Method: Request.method,
+		Destination: Request.destination,
+		URL: Request.url,
+		Origin: _URL.origin,
+		Scope: self.registration.scope,
+	});
 
 	if (
 		_URL.searchParams.has("Skip") &&
