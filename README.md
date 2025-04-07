@@ -52,46 +52,6 @@ This two-step process, coordinated via `postMessage` and distinguished by the
 while triggering the standard browser mechanism for loading the actual CSS
 styles without causing an infinite loop in the Service Worker.
 
-```mermaid
-graph LR
-    subgraph Client Application
-        A["1. JS: import './style.css'"]
-        JSResolved("JS import resolves")
-        Listener("5. Message Listener: Receives postMessage")
-        Loader1["6. CSS Loader: Calls _LOAD_CSS(URL)"]
-        Loader2["7. CSS Loader: Add ?Skip=Worker to URL"]
-        LinkDOM["7. CSS Loader: Create/Append <link>"]
-    end
-
-    subgraph Browser
-        B{"Initiate Fetch /style.css"}
-        BrowserFetch2{"8. Initiate Fetch /style.css?Skip=Worker"}
-        ApplyCSS["11. Apply CSS Styles"]
-    end
-
-    subgraph Service Worker
-        SW1("2. Intercept Fetch #1 - No Skip param")
-        Notify["3. Notify(URL) via postMessage"]
-        RespJS["4. Respond Minimal JS"]
-        SW2("9. Intercept Fetch #2 - Has Skip param")
-        ServeCSS["10. Serve Actual CSS (Cache/Network)"]
-    end
-
-    A --> B;
-    B -->|"Fetch Request"| SW1;
-    SW1 --> Notify;
-    SW1 --> RespJS;
-    Notify -->|"postMessage"| Listener;
-    RespJS -->|"JS Response"| JSResolved;
-    Listener -->|"Calls Function"| Loader1;
-    Loader1 --> Loader2;
-    Loader2 --> LinkDOM;
-    LinkDOM -->|"DOM Update"| BrowserFetch2;
-    BrowserFetch2 -->|"Fetch Request (Skip)"| SW2;
-    SW2 --> ServeCSS;
-    ServeCSS -->|"Actual CSS Response"| ApplyCSS;
-```
-
 ### Example Implementation
 
 This example shows how to integrate the necessary client-side scripts and the
