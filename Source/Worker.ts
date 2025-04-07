@@ -111,7 +111,6 @@ self.addEventListener("fetch", (Event) => {
 	// 	Destination: Request.destination,
 	// 	URL: Request.url,
 	// 	Origin: _URL.origin,
-	//
 	// 	Scope: self.registration.scope,
 	// });
 
