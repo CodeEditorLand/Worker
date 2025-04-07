@@ -1,0 +1,41 @@
+declare var self: ServiceWorkerGlobalScope;
+
+const Log = (...[Message]: any) => console.log(`[Worker Notify] ${Message}`);
+
+const ErrorLog = (...[Message]: any) => console.error(`[Worker Notify] ${Message}`);
+
+const WarnLog = (...[Message]: any) => console.warn(`[Worker Notify] ${Message}`);
+
+export default async (
+	Client: string | null | undefined,
+	URL: string,
+): Promise<void> => {
+	if (!Client) {
+		WarnLog(
+			`No Client available for CSS request ${URL}. Cannot send postMessage.`,
+		);
+
+		return;
+	}
+
+	try {
+		const Identifier = await self.clients.get(Client);
+
+		if (Identifier) {
+			Log(`Sending Load instruction to Client ${Identifier} for ${URL}`);
+
+			Identifier.postMessage({
+				_LOAD_CSS_WORKER_CODE_EDITOR_LAND: URL,
+			});
+		} else {
+			WarnLog(
+				`Client ${Identifier} not found for postMessage regarding ${URL}.`,
+			);
+		}
+	} catch (error) {
+		ErrorLog(
+			`Error sending postMessage to Client ${Client} for ${URL}:`,
+			error,
+		);
+	}
+};

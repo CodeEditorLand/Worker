@@ -1,41 +1,47 @@
-interface Window {
-	WORKER_CODE_EDITOR_LAND?: string;
+declare global {
+	interface Window {
+		_WORKER_CODE_EDITOR_LAND: string;
+	}
 }
 
 const Path =
-	typeof window.WORKER_CODE_EDITOR_LAND === "string"
-		? window.WORKER_CODE_EDITOR_LAND
+	typeof window._WORKER_CODE_EDITOR_LAND === "string"
+		? window._WORKER_CODE_EDITOR_LAND
 		: "/Worker.js";
+
+export const Log = (...[Message]: any) =>
+	console.log(`[App /VSCode] ${Message}`);
+
+export const ErrorLog = (...[Message]: any) =>
+	console.error(`[App /VSCode] ${Message}`);
+
+export const WarnLog = (...[Message]: any) =>
+	console.warn(`[App /VSCode] ${Message}`);
 
 if ("serviceWorker" in navigator) {
 	window.addEventListener("load", () =>
 		navigator.serviceWorker
-			// TODO: MAYBE REWORK WITH CUSTOM OPTIONS
-			.register(Path, { scope: "/VSCode" })
+			// TODO: MAYBE REWORK WITH CUSTOM OPTIONS / VERSION CONTROL Worker.js?SomeHASH(Version+URL)
+			.register(Path, { scope: "/VSCode", type: "module" })
 			.then((Registration) => {
-				console.log(
-					"[App /VSCode] Service Worker registered successfully.",
-				);
+				Log("Service Worker registered successfully.");
 
-				console.log("[App /VSCode] Scope:", Registration.scope);
+				Log("Scope:", Registration.scope);
 
 				if (navigator.serviceWorker.controller) {
-					console.log(
-						"[App /VSCode] Service Worker is controlling this page.",
-					);
+					Log("Service Worker is controlling this page.");
 				} else {
-					console.log(
-						"[App /VSCode] Service Worker registered, but may not control page until next load/activation.",
+					Log(
+						"Service Worker registered, but may not control page until next load/activation.",
 					);
 				}
 			})
 			.catch((_Error) => {
-				console.error(
-					"[App /VSCode] Service Worker registration failed:",
-					_Error,
-				);
+				ErrorLog("Service Worker registration failed:", _Error);
 			}),
 	);
 } else {
-	console.warn("[App /VSCode] Service Worker not supported.");
+	WarnLog("Service Worker not supported.");
 }
+
+export default {};

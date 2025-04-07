@@ -4,10 +4,13 @@
 		"baseUrl": "./",
 		"outDir": "Target",
 		"rootDir": "Source",
-		"lib": ["ESNext", "WebWorker"],
+		"lib": ["DOM", "ESNext", "WebWorker"],
 		"target": "ESNext",
 		"moduleResolution": "Bundler",
-		"module": "ESNext"
+		"module": "ESNext",
+		"paths": {
+			"@Source/*": ["Source/*"]
+		}
 	},
 	"extends": "@playform/build/tsconfig",
 	"include": ["Source", "@types/serviceworker"],
