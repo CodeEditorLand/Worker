@@ -1,1 +1,34 @@
-const r=typeof window._WORKER_CODE_EDITOR_LAND=="string"?window._WORKER_CODE_EDITOR_LAND:"/Worker.js",o=(...[e])=>console.log(`[App /VSCode] ${e}`),t=(...[e])=>console.error(`[App /VSCode] ${e}`),n=(...[e])=>console.warn(`[App /VSCode] ${e}`);"serviceWorker"in navigator?window.addEventListener("load",()=>navigator.serviceWorker.register(r,{scope:"/VSCode",type:"module"}).then(e=>{o("Service Worker registered successfully."),o("Scope:",e.scope),navigator.serviceWorker.controller?o("Service Worker is controlling this page."):o("Service Worker registered, but may not control page until next load/activation.")}).catch(e=>{t("Service Worker registration failed:",e)})):n("Service Worker not supported.");var i={};export{t as ErrorLog,o as Log,n as WarnLog,i as default};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+const Path = typeof window._WORKER === "string" ? window._WORKER : "/Worker.js";
+const Log = /* @__PURE__ */ __name((...[Message]) => console.log(`[App /VSCode] ${Message}`), "Log");
+const ErrorLog = /* @__PURE__ */ __name((...[Message]) => console.error(`[App /VSCode] ${Message}`), "ErrorLog");
+const WarnLog = /* @__PURE__ */ __name((...[Message]) => console.warn(`[App /VSCode] ${Message}`), "WarnLog");
+if ("serviceWorker" in navigator) {
+  window.addEventListener(
+    "load",
+    () => navigator.serviceWorker.register(Path, { scope: "/VSCode", type: "module" }).then((Registration) => {
+      Log("Service Worker registered successfully.");
+      Log("Scope:", Registration.scope);
+      if (navigator.serviceWorker.controller) {
+        Log("Service Worker is controlling this page.");
+      } else {
+        Log(
+          "Service Worker registered, but may not control page until next load/activation."
+        );
+      }
+    }).catch((_Error) => {
+      ErrorLog("Service Worker registration failed:", _Error);
+    })
+  );
+} else {
+  WarnLog("Service Worker not supported.");
+}
+var Register_default = {};
+export {
+  ErrorLog,
+  Log,
+  WarnLog,
+  Register_default as default
+};
+//# sourceMappingURL=Register.js.map

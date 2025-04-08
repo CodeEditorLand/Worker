@@ -1,6 +1,6 @@
 declare global {
     interface Window {
-        _WORKER_CODE_EDITOR_LAND: string;
+        _WORKER: string;
     }
 }
 export declare const Log: (...[Message]: any) => void;
