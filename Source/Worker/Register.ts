@@ -1,12 +1,12 @@
 declare global {
 	interface Window {
-		_WORKER_CODE_EDITOR_LAND: string;
+		_WORKER: string;
 	}
 }
 
 const Path =
-	typeof window._WORKER_CODE_EDITOR_LAND === "string"
-		? window._WORKER_CODE_EDITOR_LAND
+	typeof window._WORKER === "string"
+		? window._WORKER
 		: "/Worker.js";
 
 export const Log = (...[Message]: any) =>

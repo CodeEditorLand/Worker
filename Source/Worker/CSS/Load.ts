@@ -1,6 +1,6 @@
 declare global {
 	interface Window {
-		_LOAD_CSS_WORKER_CODE_EDITOR_LAND: (CSS: string) => void;
+		_LOAD_CSS_WORKER: (CSS: string) => void;
 	}
 }
 
@@ -9,7 +9,7 @@ const Log = (...[Message]: any) => console.log(`[CSS Loader] ${Message}`);
 const ErrorLog = (...[Message]: any) =>
 	console.error(`[CSS Loader] ${Message}`);
 
-window._LOAD_CSS_WORKER_CODE_EDITOR_LAND = (_CSS: string): void => {
+window._LOAD_CSS_WORKER = (_CSS: string): void => {
 	Log(`Received request to load: ${_CSS}`);
 
 	const CSS = _CSS + (_CSS.includes("?") ? "&" : "?") + "Skip=Worker";
@@ -45,19 +45,19 @@ window._LOAD_CSS_WORKER_CODE_EDITOR_LAND = (_CSS: string): void => {
 	}
 };
 
-Log("Initialized and _LOAD_CSS_WORKER_CODE_EDITOR_LAND attached to window.");
+Log("Initialized and _LOAD_CSS_WORKER attached to window.");
 
 navigator.serviceWorker.addEventListener("message", (Event) => {
-	if (Event.data && Event.data._LOAD_CSS_WORKER_CODE_EDITOR_LAND) {
-		const URL = Event.data._LOAD_CSS_WORKER_CODE_EDITOR_LAND;
+	if (Event.data && Event.data._LOAD_CSS_WORKER) {
+		const URL = Event.data._LOAD_CSS_WORKER;
 
 		console.log(`[Client] Received instruction from SW to load: ${URL}`);
 
-		if (typeof window._LOAD_CSS_WORKER_CODE_EDITOR_LAND === "function") {
-			window._LOAD_CSS_WORKER_CODE_EDITOR_LAND(URL);
+		if (typeof window._LOAD_CSS_WORKER === "function") {
+			window._LOAD_CSS_WORKER(URL);
 		} else {
 			ErrorLog(
-				"[Client] _LOAD_CSS_WORKER_CODE_EDITOR_LAND function not found when receiving SW message.",
+				"[Client] _LOAD_CSS_WORKER function not found when receiving SW message.",
 			);
 		}
 	}

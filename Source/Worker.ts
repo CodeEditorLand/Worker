@@ -44,7 +44,7 @@ const Notify = async (
 			Log(`Sending Load instruction to Client ${Identifier} for ${URL}`);
 
 			Identifier.postMessage({
-				_LOAD_CSS_WORKER_CODE_EDITOR_LAND: URL,
+				_LOAD_CSS_WORKER: URL,
 			});
 		} else {
 			WarnLog(

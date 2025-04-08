@@ -27,10 +27,10 @@ Worker and the client application at runtime using `postMessage`.
 5.  **Client Receives Message:** A `message` listener in the client-side
     JavaScript receives the instruction from the Service Worker.
 6.  **Client Initiates Load:** The message listener calls a globally defined
-    function (`window._LOAD_CSS_WORKER_CODE_EDITOR_LAND`) with the original CSS
+    function (`window._LOAD_CSS_WORKER`) with the original CSS
     URL.
 7.  **Client Modifies URL & Creates `<link>`:** The
-    `_LOAD_CSS_WORKER_CODE_EDITOR_LAND` function appends the `?Skip=Worker`
+    `_LOAD_CSS_WORKER` function appends the `?Skip=Worker`
     query parameter to the received CSS URL. It then creates a standard
     `<link rel="stylesheet">` tag, setting its `href` to this _modified_ URL,
     and appends it to the document's `<head>`.
@@ -72,7 +72,7 @@ Service Worker registration within an HTML page (`.html` file).
 
 		<!--
             IMPORTANT: Load the CSS Loader script early.
-            This script defines the global function window._LOAD_CSS_WORKER_CODE_EDITOR_LAND
+            This script defines the global function window._LOAD_CSS_WORKER
             and sets up the listener for messages from the Service Worker.
             It needs to run before your main app script tries to import CSS.
         -->
@@ -84,12 +84,12 @@ Service Worker registration within an HTML page (`.html` file).
         -->
 		<script>
 			// Set the path relative to the web root where Worker.js will be served.
-			window._WORKER_CODE_EDITOR_LAND = "/Worker.js";
+			window._WORKER = "/Worker.js";
 		</script>
 
 		<!--
             Register the Service Worker.
-            This script uses the window._WORKER_CODE_EDITOR_LAND path defined above.
+            This script uses the window._WORKER path defined above.
         -->
 		<script src="/Worker/Register.js" type="module"></script>
 
