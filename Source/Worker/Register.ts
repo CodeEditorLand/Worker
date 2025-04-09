@@ -6,40 +6,116 @@ declare global {
 
 const Path = typeof window._WORKER === "string" ? window._WORKER : "/Worker.js";
 
-export const Log = (...[_Message]: any) => {
-	// console.log(`[App /VSCode] ${_Message}`);
+const Scope = "/VSCode";
+
+const Reload = "_RELOAD_WORKER";
+
+export const Log = (..._Message: any[]) => {
+	console.log(`[App /VSCode]`, ..._Message);
 };
 
-export const ErrorLog = (...[_Message]: any) => {
-	// console.error(`[App /VSCode] ${_Message}`);
+export const ErrorLog = (..._Message: any[]) => {
+	console.error(`[App /VSCode]`, ..._Message);
 };
 
-export const WarnLog = (...[_Message]: any) => {
-	// console.warn(`[App /VSCode] ${_Message}`);
+export const WarnLog = (..._Message: any[]) => {
+	console.warn(`[App /VSCode]`, ..._Message);
 };
 
 if ("serviceWorker" in navigator) {
-	window.addEventListener("load", () =>
-		navigator.serviceWorker
-			// TODO: MAYBE REWORK WITH CUSTOM OPTIONS / VERSION CONTROL Worker.js?SomeHASH(Version+URL)
-			.register(Path, { scope: "/VSCode", type: "module" })
-			.then((Registration) => {
-				Log("Service Worker registered successfully.");
+	const Control = async () => {
+		try {
+			const Need = !navigator.serviceWorker.controller;
 
-				Log("Scope:", Registration.scope);
+			Log(
+				`Page controller status on load: ${Need ? "None (reload might be needed)" : "Active"}`,
+			);
 
-				if (navigator.serviceWorker.controller) {
-					Log("Service Worker is controlling this page.");
+			navigator.serviceWorker.addEventListener("controllerchange", () => {
+				Log(
+					"Controller changed! New service worker may now control this page.",
+				);
+
+				if (sessionStorage.getItem(Reload) === "true") {
+					Log(
+						"Reloading page to ensure SW control from the start...",
+					);
+
+					sessionStorage.removeItem(Reload);
+
+					window.location.reload();
 				} else {
 					Log(
-						"Service Worker registered, but may not control page until next load/activation.",
+						"Controller changed, but no reload needed (either already controlled or flag not set).",
 					);
 				}
-			})
-			.catch((_Error) => {
-				ErrorLog("Service Worker registration failed:", _Error);
-			}),
-	);
+			});
+
+			const Register = await navigator.serviceWorker.register(Path, {
+				scope: Scope,
+				type: "module",
+			});
+
+			Log("Service Worker registration attempt finished.");
+
+			Log("Scope:", Register.scope);
+
+			if (Register.installing) {
+				Log("Service Worker installing.");
+			} else if (Register.waiting) {
+				Log(
+					"Service Worker installed but waiting to activate (should be skipped by skipWaiting).",
+				);
+			} else if (Register.active) {
+				Log("Service Worker is active.");
+			}
+
+			if (Need) {
+				if (
+					!navigator.serviceWorker.controller &&
+					!sessionStorage.getItem(Reload)
+				) {
+					Log(
+						"No active controller detected immediately after registration. Setting flag for reload on controllerchange.",
+					);
+
+					sessionStorage.setItem(Reload, "true");
+				} else if (navigator.serviceWorker.controller) {
+					Log(
+						"Controller became active during registration check. Clearing any potential reload flag.",
+					);
+
+					sessionStorage.removeItem(Reload);
+				}
+			} else {
+				if (sessionStorage.getItem(Reload)) {
+					Log(
+						"Page was already controlled. Ensuring reload flag is cleared.",
+					);
+
+					sessionStorage.removeItem(Reload);
+				}
+			}
+
+			if (navigator.serviceWorker.controller) {
+				Log("Service Worker is actively controlling this page now.");
+			} else {
+				Log(
+					"Service Worker registered, but controller not yet active. Waiting for controllerchange event.",
+				);
+			}
+		} catch (_Error) {
+			ErrorLog("Service Worker registration failed:", _Error);
+
+			sessionStorage.removeItem(Reload);
+		}
+	};
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", Control);
+	} else {
+		Control();
+	}
 } else {
 	WarnLog("Service Worker not supported.");
 }

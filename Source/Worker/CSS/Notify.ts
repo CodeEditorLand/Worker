@@ -1,15 +1,15 @@
 declare var self: ServiceWorkerGlobalScope;
 
-const Log = (...[_Message]: any) => {
-	// console.log(`[Worker Notify] ${_Message}`);
+const Log = (..._Message: any[]) => {
+	console.log(`[Worker Notify]`, ..._Message);
 };
 
-const ErrorLog = (...[_Message]: any) => {
-	// console.error(`[Worker Notify] ${_Message}`);
+const ErrorLog = (..._Message: any[]) => {
+	console.error(`[Worker Notify]`, ..._Message);
 };
 
-const WarnLog = (...[_Message]: any) => {
-	// console.warn(`[Worker Notify] ${_Message}`);
+const WarnLog = (..._Message: any[]) => {
+	console.warn(`[Worker Notify]`, ..._Message);
 };
 
 export default async (

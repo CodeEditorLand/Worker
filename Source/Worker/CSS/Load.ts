@@ -4,12 +4,12 @@ declare global {
 	}
 }
 
-const Log = (...[_Message]: any) => {
-	// console.log(`[CSS Loader] ${_Message}`);
+const Log = (..._Message: any[]) => {
+	console.log(`[CSS Loader]`, ..._Message);
 };
 
-const ErrorLog = (...[_Message]: any) => {
-	// console.error(`[CSS Loader] ${_Message}`);
+const ErrorLog = (..._Message: any[]) => {
+	console.error(`[CSS Loader]`, ..._Message);
 };
 
 window._LOAD_CSS_WORKER = (_CSS: string): void => {
