@@ -4,19 +4,19 @@ declare global {
 	}
 }
 
-const Path =
-	typeof window._WORKER === "string"
-		? window._WORKER
-		: "/Worker.js";
+const Path = typeof window._WORKER === "string" ? window._WORKER : "/Worker.js";
 
-export const Log = (...[Message]: any) =>
-	console.log(`[App /VSCode] ${Message}`);
+export const Log = (...[_Message]: any) => {
+	// console.log(`[App /VSCode] ${_Message}`);
+};
 
-export const ErrorLog = (...[Message]: any) =>
-	console.error(`[App /VSCode] ${Message}`);
+export const ErrorLog = (...[_Message]: any) => {
+	// console.error(`[App /VSCode] ${_Message}`);
+};
 
-export const WarnLog = (...[Message]: any) =>
-	console.warn(`[App /VSCode] ${Message}`);
+export const WarnLog = (...[_Message]: any) => {
+	// console.warn(`[App /VSCode] ${_Message}`);
+};
 
 if ("serviceWorker" in navigator) {
 	window.addEventListener("load", () =>

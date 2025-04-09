@@ -4,10 +4,13 @@ declare global {
 	}
 }
 
-const Log = (...[Message]: any) => console.log(`[CSS Loader] ${Message}`);
+const Log = (...[_Message]: any) => {
+	// console.log(`[CSS Loader] ${_Message}`);
+};
 
-const ErrorLog = (...[Message]: any) =>
-	console.error(`[CSS Loader] ${Message}`);
+const ErrorLog = (...[_Message]: any) => {
+	// console.error(`[CSS Loader] ${_Message}`);
+};
 
 window._LOAD_CSS_WORKER = (_CSS: string): void => {
 	Log(`Received request to load: ${_CSS}`);
@@ -51,13 +54,13 @@ navigator.serviceWorker.addEventListener("message", (Event) => {
 	if (Event.data && Event.data._LOAD_CSS_WORKER) {
 		const URL = Event.data._LOAD_CSS_WORKER;
 
-		console.log(`[Client] Received instruction from SW to load: ${URL}`);
+		Log(`[Client] Received instruction from [SW] to load: ${URL}`);
 
 		if (typeof window._LOAD_CSS_WORKER === "function") {
 			window._LOAD_CSS_WORKER(URL);
 		} else {
 			ErrorLog(
-				"[Client] _LOAD_CSS_WORKER function not found when receiving SW message.",
+				"[Client] _LOAD_CSS_WORKER function not found when receiving [SW] message.",
 			);
 		}
 	}

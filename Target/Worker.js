@@ -8,9 +8,12 @@ const SHIM_FILES_TO_PRECACHE = ["/Static/Shim/Variable.js"];
 const SHIM_URL_TO_CACHE_PATH_MAP = {
   "/Static/Shim/Variable.js": "/Static/Shim/Variable.js"
 };
-const Log = /* @__PURE__ */ __name((...[Message]) => console.log(`[Worker ${SCRIPT_VERSION}] ${Message}`), "Log");
-const ErrorLog = /* @__PURE__ */ __name((...[Message]) => console.error(`[Worker ${SCRIPT_VERSION}] ${Message}`), "ErrorLog");
-const WarnLog = /* @__PURE__ */ __name((...[Message]) => console.warn(`[Worker ${SCRIPT_VERSION}] ${Message}`), "WarnLog");
+const Log = /* @__PURE__ */ __name((...[_Message]) => {
+}, "Log");
+const ErrorLog = /* @__PURE__ */ __name((...[_Message]) => {
+}, "ErrorLog");
+const WarnLog = /* @__PURE__ */ __name((...[_Message]) => {
+}, "WarnLog");
 const Notify = /* @__PURE__ */ __name(async (Client, URL2) => {
   if (!Client) {
     WarnLog(

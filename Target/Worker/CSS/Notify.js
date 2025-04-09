@@ -1,8 +1,11 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-const Log = /* @__PURE__ */ __name((...[Message]) => console.log(`[Worker Notify] ${Message}`), "Log");
-const ErrorLog = /* @__PURE__ */ __name((...[Message]) => console.error(`[Worker Notify] ${Message}`), "ErrorLog");
-const WarnLog = /* @__PURE__ */ __name((...[Message]) => console.warn(`[Worker Notify] ${Message}`), "WarnLog");
+const Log = /* @__PURE__ */ __name((...[_Message]) => {
+}, "Log");
+const ErrorLog = /* @__PURE__ */ __name((...[_Message]) => {
+}, "ErrorLog");
+const WarnLog = /* @__PURE__ */ __name((...[_Message]) => {
+}, "WarnLog");
 var Notify_default = /* @__PURE__ */ __name(async (Client, URL) => {
   if (!Client) {
     WarnLog(

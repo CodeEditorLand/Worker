@@ -1,7 +1,9 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-const Log = /* @__PURE__ */ __name((...[Message]) => console.log(`[CSS Loader] ${Message}`), "Log");
-const ErrorLog = /* @__PURE__ */ __name((...[Message]) => console.error(`[CSS Loader] ${Message}`), "ErrorLog");
+const Log = /* @__PURE__ */ __name((...[_Message]) => {
+}, "Log");
+const ErrorLog = /* @__PURE__ */ __name((...[_Message]) => {
+}, "ErrorLog");
 window._LOAD_CSS_WORKER = (_CSS) => {
   Log(`Received request to load: ${_CSS}`);
   const CSS = _CSS + (_CSS.includes("?") ? "&" : "?") + "Skip=Worker";
@@ -30,12 +32,12 @@ Log("Initialized and _LOAD_CSS_WORKER attached to window.");
 navigator.serviceWorker.addEventListener("message", (Event) => {
   if (Event.data && Event.data._LOAD_CSS_WORKER) {
     const URL = Event.data._LOAD_CSS_WORKER;
-    console.log(`[Client] Received instruction from SW to load: ${URL}`);
+    Log(`[Client] Received instruction from [SW] to load: ${URL}`);
     if (typeof window._LOAD_CSS_WORKER === "function") {
       window._LOAD_CSS_WORKER(URL);
     } else {
       ErrorLog(
-        "[Client] _LOAD_CSS_WORKER function not found when receiving SW message."
+        "[Client] _LOAD_CSS_WORKER function not found when receiving [SW] message."
       );
     }
   }

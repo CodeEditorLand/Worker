@@ -1,9 +1,12 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 const Path = typeof window._WORKER === "string" ? window._WORKER : "/Worker.js";
-const Log = /* @__PURE__ */ __name((...[Message]) => console.log(`[App /VSCode] ${Message}`), "Log");
-const ErrorLog = /* @__PURE__ */ __name((...[Message]) => console.error(`[App /VSCode] ${Message}`), "ErrorLog");
-const WarnLog = /* @__PURE__ */ __name((...[Message]) => console.warn(`[App /VSCode] ${Message}`), "WarnLog");
+const Log = /* @__PURE__ */ __name((...[_Message]) => {
+}, "Log");
+const ErrorLog = /* @__PURE__ */ __name((...[_Message]) => {
+}, "ErrorLog");
+const WarnLog = /* @__PURE__ */ __name((...[_Message]) => {
+}, "WarnLog");
 if ("serviceWorker" in navigator) {
   window.addEventListener(
     "load",

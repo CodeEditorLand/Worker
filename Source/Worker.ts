@@ -16,14 +16,17 @@ const SHIM_URL_TO_CACHE_PATH_MAP: {
 	"/Static/Shim/Variable.js": "/Static/Shim/Variable.js",
 };
 
-const Log = (...[Message]: any) =>
-	console.log(`[Worker ${SCRIPT_VERSION}] ${Message}`);
+const Log = (...[_Message]: any) => {
+	// console.log(`[Worker ${SCRIPT_VERSION}] ${_Message}`);
+};
 
-const ErrorLog = (...[Message]: any) =>
-	console.error(`[Worker ${SCRIPT_VERSION}] ${Message}`);
+const ErrorLog = (...[_Message]: any) => {
+	// console.error(`[Worker ${SCRIPT_VERSION}] ${_Message}`);
+};
 
-const WarnLog = (...[Message]: any) =>
-	console.warn(`[Worker ${SCRIPT_VERSION}] ${Message}`);
+const WarnLog = (...[_Message]: any) => {
+	// console.warn(`[Worker ${SCRIPT_VERSION}] ${_Message}`);
+};
 
 const Notify = async (
 	Client: string | null | undefined,
