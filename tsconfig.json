@@ -10,7 +10,8 @@
 		"module": "ESNext",
 		"paths": {
 			"@Source/*": ["Source/*"]
-		}
+		},
+		"noEmit": true
 	},
 	"extends": "@playform/build/tsconfig",
 	"include": ["Source", "@types/serviceworker"],
