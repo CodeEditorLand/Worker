@@ -16,18 +16,28 @@ const SHIM_MAP: {
 	"/Static/Shim/Variable.js": "/Static/Shim/Variable.js",
 };
 
-const BASE_REMOTE = "http://localhost";
+const BASE_REMOTE =
+	new URLSearchParams(self.location.search).get("BASE_REMOTE") ||
+	"http://localhost";
 
 const Log = (..._Message: any[]) => {
-	console.log(`[Worker ${VERSION}]`, ..._Message);
+	console.log(`[Worker ${VERSION}]`, `(Remote: ${BASE_REMOTE})`, ..._Message);
 };
 
 const ErrorLog = (..._Message: any[]) => {
-	console.error(`[Worker ${VERSION}]`, ..._Message);
+	console.error(
+		`[Worker ${VERSION}]`,
+		`(Remote: ${BASE_REMOTE})`,
+		..._Message,
+	);
 };
 
 const WarnLog = (..._Message: any[]) => {
-	console.warn(`[Worker ${VERSION}]`, ..._Message);
+	console.warn(
+		`[Worker ${VERSION}]`,
+		`(Remote: ${BASE_REMOTE})`,
+		..._Message,
+	);
 };
 
 const Notify = async (
