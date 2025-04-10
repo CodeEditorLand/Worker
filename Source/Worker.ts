@@ -32,6 +32,7 @@ const WarnLog = (..._Message: any[]) => {
 
 const Notify = async (
 	Client: string | null | undefined,
+
 	URL: string,
 ): Promise<void> => {
 	if (!Client) {
@@ -59,6 +60,7 @@ const Notify = async (
 	} catch (error) {
 		ErrorLog(
 			`Error sending postMessage to Client ${Client} for ${URL}:`,
+
 			error,
 		);
 	}
@@ -91,14 +93,29 @@ self.addEventListener("activate", (Event) => {
 						if (!CACHE.includes(Name)) {
 							Log(`Deleting old cache: ${Name}`);
 
-							caches.delete(Name);
+							return caches.delete(Name);
 						}
+
+						return Promise.resolve();
 					}),
 				);
 			}),
 
 			self.clients.claim(),
-		]).catch((_Error) => ErrorLog(`Activation failed:`, _Error)),
+		])
+			.then(() => {
+				Log("New worker activated. Notifying clients.");
+
+				return self.clients.matchAll({ type: "window" });
+			})
+			.then((Client) => {
+				Client.forEach((Client) => {
+					Log(`Sending Version to client ${Client.id}`);
+
+					Client.postMessage({ Version: "New" });
+				});
+			})
+			.catch((_Error) => ErrorLog(`Activation failed:`, _Error)),
 	);
 });
 
@@ -113,9 +130,13 @@ self.addEventListener("fetch", (Event) => {
 
 	Log(`Fetch event for: ${Path}`, {
 		Method: Request.method,
+
 		Destination: Request.destination,
+
 		URL: Request.url,
+
 		Origin: _URL.origin,
+
 		Scope: self.registration.scope,
 	});
 
@@ -212,6 +233,7 @@ self.addEventListener("fetch", (Event) => {
 
 					const _Response = new Response("export default {};", {
 						status: 200,
+
 						headers: {
 							"Content-Type":
 								"application/javascript; charset=utf-8",
@@ -225,11 +247,13 @@ self.addEventListener("fetch", (Event) => {
 				.catch((_Error) => {
 					ErrorLog(
 						`Error handling CSS intercept response for ${Path}:`,
+
 						_Error,
 					);
 
 					return new Response("// Error handling CSS intercept", {
 						status: 500,
+
 						headers: { "Content-Type": "application/javascript" },
 					});
 				}),
@@ -302,6 +326,7 @@ self.addEventListener("fetch", (Event) => {
 
 					return new Response(`Failed to fetch asset ${Path}`, {
 						status: 503,
+
 						statusText: "Service Unavailable",
 					});
 				}),
