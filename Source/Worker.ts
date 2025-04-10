@@ -272,78 +272,78 @@ self.addEventListener("fetch", (Event) => {
 		return;
 	}
 
-	if (Path.startsWith("/Static/VSCode/")) {
-		Log(`Handling asset request (Network-First): ${Path}`);
+	// if (Path.startsWith("/Static/VSCode/")) {
+	// 	Log(`Handling asset request (Network-First): ${Path}`);
 
-		const URL_REMOTE = BASE_REMOTE + Path;
+	// 	const URL_REMOTE = BASE_REMOTE + Path;
 
-		Event.respondWith(
-			fetch(URL_REMOTE)
-				.then(async (_Response) => {
-					if (_Response && _Response.ok) {
-						Log(`Fetched asset from remote: ${URL_REMOTE}`);
+	// 	Event.respondWith(
+	// 		fetch(URL_REMOTE)
+	// 			.then(async (_Response) => {
+	// 				if (_Response && _Response.ok) {
+	// 					Log(`Fetched asset from remote: ${URL_REMOTE}`);
 
-						const Cache = await caches.open(CACHE_ASSET);
+	// 					const Cache = await caches.open(CACHE_ASSET);
 
-						await Cache.put(Request, _Response.clone());
+	// 					await Cache.put(Request, _Response.clone());
 
-						return _Response;
-					}
+	// 					return _Response;
+	// 				}
 
-					WarnLog(
-						`Remote fetch failed for ${URL_REMOTE} with status: ${_Response.status}. Trying cache...`,
-					);
+	// 				WarnLog(
+	// 					`Remote fetch failed for ${URL_REMOTE} with status: ${_Response.status}. Trying cache...`,
+	// 				);
 
-					return caches
-						.open(CACHE_ASSET)
-						.then((cache) => cache.match(Request))
-						.then((Response) => {
-							if (Response) {
-								Log(
-									`Serving asset from cache after remote fail: ${Path}`,
-								);
+	// 				return caches
+	// 					.open(CACHE_ASSET)
+	// 					.then((cache) => cache.match(Request))
+	// 					.then((Response) => {
+	// 						if (Response) {
+	// 							Log(
+	// 								`Serving asset from cache after remote fail: ${Path}`,
+	// 							);
 
-								return Response;
-							}
+	// 							return Response;
+	// 						}
 
-							WarnLog(
-								`Asset not found in cache either: ${Path}. Returning original network error.`,
-							);
+	// 						WarnLog(
+	// 							`Asset not found in cache either: ${Path}. Returning original network error.`,
+	// 						);
 
-							return _Response;
-						});
-				})
-				.catch(async (_Error) => {
-					ErrorLog(`Remote fetch failed for ${URL_REMOTE}:`, _Error);
+	// 						return _Response;
+	// 					});
+	// 			})
+	// 			.catch(async (_Error) => {
+	// 				ErrorLog(`Remote fetch failed for ${URL_REMOTE}:`, _Error);
 
-					WarnLog(`Trying cache for ${Path}...`);
+	// 				WarnLog(`Trying cache for ${Path}...`);
 
-					const _Response = await (
-						await caches.open(CACHE_ASSET)
-					).match(Request);
+	// 				const _Response = await (
+	// 					await caches.open(CACHE_ASSET)
+	// 				).match(Request);
 
-					if (_Response) {
-						Log(
-							`Serving asset from cache after remote error: ${Path}`,
-						);
+	// 				if (_Response) {
+	// 					Log(
+	// 						`Serving asset from cache after remote error: ${Path}`,
+	// 					);
 
-						return _Response;
-					}
+	// 					return _Response;
+	// 				}
 
-					ErrorLog(
-						`Asset not found in cache after remote error: ${Path}`,
-					);
+	// 				ErrorLog(
+	// 					`Asset not found in cache after remote error: ${Path}`,
+	// 				);
 
-					return new Response(`Failed to fetch asset ${Path}`, {
-						status: 503,
+	// 				return new Response(`Failed to fetch asset ${Path}`, {
+	// 					status: 503,
 
-						statusText: "Service Unavailable",
-					});
-				}),
-		);
+	// 					statusText: "Service Unavailable",
+	// 				});
+	// 			}),
+	// 	);
 
-		return;
-	}
+	// 	return;
+	// }
 
 	if (Path.startsWith("/Static/VSCode/")) {
 		Log(`Handling asset request (Cache-First): ${Path}`);
