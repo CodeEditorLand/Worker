@@ -110,7 +110,7 @@ self.addEventListener("activate", (Event) => {
 			})
 			.then((Client) => {
 				Client.forEach((Client) => {
-					Log(`Sending Version to client ${Client.id}`);
+					Log(`Sending New to client ${Client.id}`);
 
 					Client.postMessage({ Version: "New" });
 				});
@@ -385,6 +385,15 @@ self.addEventListener("fetch", (Event) => {
 
 		return;
 	}
+});
+
+self.addEventListener("message", (event) => {
+	Log(`[Worker] Received message from client:`, event.data);
+	// Example: Handle a specific message type
+	// if (event.data && event.data.type === 'CLEAR_CACHE') {
+	//     Log('[Worker] Received instruction to clear cache.');
+	//     // Add cache clearing logic here if needed
+	// }
 });
 
 export default {};

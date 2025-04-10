@@ -22,6 +22,22 @@ export const WarnLog = (..._Message: any[]) => {
 	console.warn(`[App /VSCode]`, ..._Message);
 };
 
+export const Check = async () => {
+	if ("serviceWorker" in navigator) {
+		try {
+			Log("Checking for service worker updates...");
+
+			await (await navigator.serviceWorker.ready).update();
+
+			Log("Service worker update check finished.");
+		} catch (_Error) {
+			ErrorLog("Error checking for service worker updates:", _Error);
+		}
+	} else {
+		WarnLog("Service Worker not supported, cannot check for updates.");
+	}
+};
+
 if ("serviceWorker" in navigator) {
 	const Control = async () => {
 		try {
@@ -110,6 +126,22 @@ if ("serviceWorker" in navigator) {
 			sessionStorage.removeItem(Reload);
 		}
 	};
+
+	navigator.serviceWorker.addEventListener("message", (Event) => {
+		Log("[Client] Received message from SW:", Event.data);
+
+		if (Event.data && Event.data.Version === "New") {
+			WarnLog(
+				"A new version of the application is available! Reloading page...",
+			);
+
+			if (confirm("A new version is available. Reload now?")) {
+				window.location.reload();
+			}
+
+			window.location.reload();
+		}
+	});
 
 	if (document.readyState === "loading") {
 		document.addEventListener("DOMContentLoaded", Control);
