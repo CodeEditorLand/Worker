@@ -1,31 +1,33 @@
 declare var self: ServiceWorkerGlobalScope;
 
-const SCRIPT_VERSION = "v0.0.1";
+const VERSION = "v0.0.1";
 
-const SHIM_CACHE_NAME = `Shim-${SCRIPT_VERSION}`;
+const CACHE_SHIM = `Shim-${VERSION}`;
 
-const ASSET_CACHE_NAME = `Asset-${SCRIPT_VERSION}`;
+const CACHE_ASSET = `Asset-${VERSION}`;
 
-const ALL_CACHES = [SHIM_CACHE_NAME, ASSET_CACHE_NAME];
+const CACHE = [CACHE_SHIM, CACHE_ASSET];
 
-const SHIM_FILES_TO_PRECACHE = ["/Static/Shim/Variable.js"];
+const SHIM_PRECACHE = ["/Static/Shim/Variable.js"];
 
-const SHIM_URL_TO_CACHE_PATH_MAP: {
+const SHIM_MAP: {
 	[key: string]: string;
 } = {
 	"/Static/Shim/Variable.js": "/Static/Shim/Variable.js",
 };
 
+const BASE_REMOTE = "http://localhost";
+
 const Log = (..._Message: any[]) => {
-	console.log(`[Worker ${SCRIPT_VERSION}]`, ..._Message);
+	console.log(`[Worker ${VERSION}]`, ..._Message);
 };
 
 const ErrorLog = (..._Message: any[]) => {
-	console.error(`[Worker ${SCRIPT_VERSION}]`, ..._Message);
+	console.error(`[Worker ${VERSION}]`, ..._Message);
 };
 
 const WarnLog = (..._Message: any[]) => {
-	console.warn(`[Worker ${SCRIPT_VERSION}]`, ..._Message);
+	console.warn(`[Worker ${VERSION}]`, ..._Message);
 };
 
 const Notify = async (
@@ -67,11 +69,11 @@ self.addEventListener("install", (Event) => {
 
 	Event.waitUntil(
 		caches
-			.open(SHIM_CACHE_NAME)
+			.open(CACHE_SHIM)
 			.then((Cache) => {
-				Log(`Precaching shims:`, SHIM_FILES_TO_PRECACHE);
+				Log(`Precaching shims:`, SHIM_PRECACHE);
 
-				Cache.addAll(SHIM_FILES_TO_PRECACHE);
+				Cache.addAll(SHIM_PRECACHE);
 			})
 			.then(() => self.skipWaiting())
 			.catch((_Error) => ErrorLog(`Shim Precaching failed:`, _Error)),
@@ -86,7 +88,7 @@ self.addEventListener("activate", (Event) => {
 			caches.keys().then((Name) => {
 				return Promise.all(
 					Name.map((Name) => {
-						if (!ALL_CACHES.includes(Name)) {
+						if (!CACHE.includes(Name)) {
 							Log(`Deleting old cache: ${Name}`);
 
 							caches.delete(Name);
@@ -123,7 +125,7 @@ self.addEventListener("fetch", (Event) => {
 	) {
 		Event.respondWith(
 			caches
-				.open(ASSET_CACHE_NAME)
+				.open(CACHE_ASSET)
 				.then(async (Load) => {
 					const Cache = await Load.match(Request);
 
@@ -131,13 +133,13 @@ self.addEventListener("fetch", (Event) => {
 						return Cache;
 					}
 
-					const _Response = await fetch(Request);
+					const Response = await fetch(Request);
 
-					if (_Response.ok) {
-						await Load.put(Request, _Response.clone());
+					if (Response.ok) {
+						await Load.put(Request, Response.clone());
 					}
 
-					return _Response;
+					return Response;
 				})
 				.catch(() => fetch(Request)),
 		);
@@ -153,14 +155,14 @@ self.addEventListener("fetch", (Event) => {
 		return;
 	}
 
-	if (SHIM_URL_TO_CACHE_PATH_MAP[Path]) {
-		const PathCache = SHIM_URL_TO_CACHE_PATH_MAP[Path];
+	if (SHIM_MAP[Path]) {
+		const PathCache = SHIM_MAP[Path];
 
 		Log(`Serving shim for ${Path} from cache (${PathCache})`);
 
 		Event.respondWith(
 			caches
-				.open(SHIM_CACHE_NAME)
+				.open(CACHE_SHIM)
 				.then((Load) => Load.match(PathCache))
 				.then((Response) => {
 					if (Response) {
@@ -190,7 +192,7 @@ self.addEventListener("fetch", (Event) => {
 
 		Event.respondWith(
 			caches
-				.open(ASSET_CACHE_NAME)
+				.open(CACHE_ASSET)
 				.then(async (Load) => {
 					await Notify(Client, Request.url);
 
@@ -237,11 +239,83 @@ self.addEventListener("fetch", (Event) => {
 	}
 
 	if (Path.startsWith("/Static/VSCode/")) {
+		Log(`Handling asset request (Network-First): ${Path}`);
+
+		const URL_REMOTE = BASE_REMOTE + Path;
+
+		Event.respondWith(
+			fetch(URL_REMOTE)
+				.then(async (_Response) => {
+					if (_Response && _Response.ok) {
+						Log(`Fetched asset from remote: ${URL_REMOTE}`);
+
+						const Cache = await caches.open(CACHE_ASSET);
+
+						await Cache.put(Request, _Response.clone());
+
+						return _Response;
+					}
+
+					WarnLog(
+						`Remote fetch failed for ${URL_REMOTE} with status: ${_Response.status}. Trying cache...`,
+					);
+
+					return caches
+						.open(CACHE_ASSET)
+						.then((cache) => cache.match(Request))
+						.then((Response) => {
+							if (Response) {
+								Log(
+									`Serving asset from cache after remote fail: ${Path}`,
+								);
+
+								return Response;
+							}
+
+							WarnLog(
+								`Asset not found in cache either: ${Path}. Returning original network error.`,
+							);
+
+							return _Response;
+						});
+				})
+				.catch(async (_Error) => {
+					ErrorLog(`Remote fetch failed for ${URL_REMOTE}:`, _Error);
+
+					WarnLog(`Trying cache for ${Path}...`);
+
+					const _Response = await (
+						await caches.open(CACHE_ASSET)
+					).match(Request);
+
+					if (_Response) {
+						Log(
+							`Serving asset from cache after remote error: ${Path}`,
+						);
+
+						return _Response;
+					}
+
+					ErrorLog(
+						`Asset not found in cache after remote error: ${Path}`,
+					);
+
+					return new Response(`Failed to fetch asset ${Path}`, {
+						status: 503,
+						statusText: "Service Unavailable",
+					});
+				}),
+		);
+
+		return;
+	}
+
+	if (Path.startsWith("/Static/VSCode/")) {
 		Log(`Handling asset request (Cache-First): ${Path}`);
 
 		Event.respondWith(
 			caches
-				.open(ASSET_CACHE_NAME)
+				.open(CACHE_ASSET)
 				.then(async (Cache) => {
 					const Cached = await Cache.match(Request);
 
