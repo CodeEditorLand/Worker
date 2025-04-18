@@ -24,7 +24,7 @@
 	},
 	"devDependencies": {
 		"@playform/build": "0.2.3",
-		"@types/serviceworker": "0.0.129"
+		"@types/serviceworker": "0.0.130"
 	},
 	"publishConfig": {
 		"access": "public",
