@@ -11,15 +11,15 @@ const Scope = "/VSCode";
 const Reload = "_RELOAD_WORKER";
 
 export const Log = (..._Message: any[]) => {
-	console.log(`[App /VSCode]`, ..._Message);
+	console.log(`[Register]`, ..._Message);
 };
 
 export const ErrorLog = (..._Message: any[]) => {
-	console.error(`[App /VSCode]`, ..._Message);
+	console.error(`[Register]`, ..._Message);
 };
 
 export const WarnLog = (..._Message: any[]) => {
-	console.warn(`[App /VSCode]`, ..._Message);
+	console.warn(`[Register]`, ..._Message);
 };
 
 export const Check = async () => {
