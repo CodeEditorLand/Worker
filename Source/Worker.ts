@@ -2,21 +2,25 @@ declare var self: ServiceWorkerGlobalScope;
 
 const VERSION = "v0.0.1";
 
+const CACHE_CORE = `Core-${VERSION}`;
+
 const CACHE_SHIM = `Shim-${VERSION}`;
 
 const CACHE_ASSET = `Asset-${VERSION}`;
 
-const SHIM_PRECACHE = ["/Static/Shim/Variable.js"];
+const CACHE = [CACHE_CORE, CACHE_SHIM, CACHE_ASSET];
 
-const SHIM_MAP: {
-	[key: string]: string;
-} = {
-	"/Static/Shim/Variable.js": "/Static/Shim/Variable.js",
-};
+const CORE_PRECACHE = [
+	"/Aplication/",
+	"/Worker/Register.js",
+	"/Worker/CSS/Load.js",
+	"/Worker/CSS/Notify.js",
+	"/Static/Shim/Variable.js",
+];
 
 const BASE_REMOTE =
 	new URLSearchParams(self.location.search).get("BASE_REMOTE") ||
-	"http://localhost";
+	"https://localhost";
 
 const Log = (..._Message: any[]) => {
 	console.log(`[Worker ${VERSION}]`, `(Remote: ${BASE_REMOTE})`, ..._Message);
@@ -75,86 +79,73 @@ const Notify = async (
 };
 
 self.addEventListener("install", (Event) => {
-	Log(`Installing...`);
+	Log(`Installing version ${VERSION}...`);
 
 	Event.waitUntil(
-		caches
-			.open(CACHE_SHIM)
-			.then((Cache) => {
-				Log(`Precaching shims:`, SHIM_PRECACHE);
+		Promise.all([
+			caches
+				.open(CACHE_CORE)
+				.then((cache) => {
+					Log(`Precaching Core Assets:`, CORE_PRECACHE);
 
-				Cache.addAll(SHIM_PRECACHE);
-			})
-			.then(() => self.skipWaiting())
-			.catch((_Error) => ErrorLog(`Shim Precaching failed:`, _Error)),
+					return cache.addAll(CORE_PRECACHE);
+				})
+				.catch((_Error) => ErrorLog("Core Precaching failed:", _Error)),
+		]).then(() => {
+			Log("Precaching complete. Activating immediately.");
+
+			return self.skipWaiting();
+		}),
 	);
 });
 
 self.addEventListener("activate", (Event) => {
-	Log(`Activating...`);
+	Log(`Activating version ${VERSION}...`);
 
 	Event.waitUntil(
 		Promise.all([
-			caches.keys().then((Name) => {
-				return Promise.all(
-					Name.map((Name) => {
-						if (![CACHE_SHIM, CACHE_ASSET].includes(Name)) {
-							Log(`Deleting old cache: ${Name}`);
+			caches.keys().then((Cache) =>
+				Promise.all(
+					Cache.map((Cache) => {
+						if (!CACHE.includes(Cache)) {
+							Log(`Deleting old cache: ${Cache}`);
 
-							return caches.delete(Name);
+							return caches.delete(Cache);
 						}
 
 						return Promise.resolve();
 					}),
-				);
-			}),
-
+				),
+			),
 			self.clients.claim(),
 		])
 			.then(() => {
-				Log("New worker activated. Notifying clients.");
+				Log(`Version ${VERSION} activated and controlling clients.`);
 
-				return self.clients.matchAll({ type: "window" });
-			})
-			.then((Client) => {
-				Client.forEach((Client) => {
-					Log(`Sending New to client ${Client.id}`);
+				return self.clients
+					.matchAll({ type: "window" })
+					.then((Client) =>
+						Client.forEach((Client) => {
+							Log(
+								`Sending New Version message to client ${Client.id}`,
+							);
 
-					Client.postMessage({ Version: "New" });
-				});
+							Client.postMessage({ Version: "New" });
+						}),
+					);
 			})
 			.catch((_Error) => ErrorLog(`Activation failed:`, _Error)),
 	);
 });
 
 self.addEventListener("fetch", (Event) => {
-	const _URL = new URL(Event.request.url);
+	const Request = Event.request;
+
+	const _URL = new URL(Request.url);
 
 	const Path = _URL.pathname;
 
-	const Request = Event.request;
-
 	const Client = Event.clientId;
-
-	if (
-		[
-			new URL(self.location.href).pathname,
-
-			new URL(
-				self.registration.scope + "Worker/Register.js",
-				self.location.origin,
-			).pathname,
-
-			new URL(
-				self.registration.scope + "Worker/CSS/Load.js",
-				self.location.origin,
-			).pathname,
-		].includes(Path)
-	) {
-		Log(`Ignoring fetch for critical script: ${Path}`);
-
-		return;
-	}
 
 	Log(`Fetch event for: ${Path}`, {
 		Method: Request.method,
@@ -167,6 +158,78 @@ self.addEventListener("fetch", (Event) => {
 
 		Scope: self.registration.scope,
 	});
+
+	if (
+		_URL.origin === self.origin &&
+		Path === new URL(self.location.href).pathname
+	) {
+		Log("Ignoring fetch for SW script itself:", Path);
+
+		return;
+	}
+
+	if (Request.method !== "GET") {
+		Log(`Ignoring non-GET request: ${Request.method} ${Path}`);
+
+		return;
+	}
+
+	if (Request.mode === "navigate") {
+		Log(`Handling navigation request (Network-First): ${Path}`);
+
+		Event.respondWith(
+			(async () => {
+				try {
+					const _Response = await fetch(Request);
+
+					if (_Response && _Response.ok) {
+						Log(`Navigation request fetched from network: ${Path}`);
+
+						(await caches.open(CACHE_CORE)).put(
+							Request,
+							_Response.clone(),
+						);
+
+						return _Response;
+					}
+
+					WarnLog(
+						`Navigation network fetch failed or returned error (${_Response.status}): ${Path}. Trying cache...`,
+					);
+				} catch (_Error) {
+					WarnLog(
+						`Navigation network fetch failed entirely: ${Path}. Trying cache...`,
+						_Error,
+					);
+				}
+
+				const _Response = await (
+					await caches.open(CACHE_CORE)
+				).match(Request);
+
+				if (_Response) {
+					Log(`Serving navigation request from cache: ${Path}`);
+
+					return _Response;
+				}
+
+				ErrorLog(
+					`Navigation request failed on network and cache: ${Path}`,
+				);
+
+				return new Response(
+					"Network error: You appear to be offline and the page is not cached.",
+					{
+						status: 503,
+						statusText: "Service Unavailable",
+						headers: { "Content-Type": "text/plain" },
+					},
+				);
+			})(),
+		);
+
+		return;
+	}
 
 	if (
 		_URL.searchParams.has("Skip") &&
@@ -188,25 +251,36 @@ self.addEventListener("fetch", (Event) => {
 
 					Log(`Cache miss for Skip=Worker, fetching: ${Path}`);
 
-					const Response = await fetch(Request);
+					try {
+						const _Response = await fetch(Request);
 
-					if (Response.ok) {
-						Log(
-							`Caching successful network response for Skip=Worker: ${Path}`,
-						);
+						if (_Response && _Response.ok) {
+							Log(
+								`Caching successful network response for Skip=Worker: ${Path}`,
+							);
 
-						await Load.put(Request, Response.clone());
-					} else if (Response) {
-						WarnLog(
-							`Network fetch failed for Skip=Worker ${Path} Status: ${Response.status}`,
-						);
-					} else {
+							await Load.put(Request, _Response.clone());
+						} else if (_Response) {
+							WarnLog(
+								`Network fetch failed for Skip=Worker ${Path} Status: ${_Response.status}`,
+							);
+						} else {
+							ErrorLog(
+								`Network fetch failed entirely for Skip=Worker ${Path}`,
+							);
+						}
+
+						return _Response;
+					} catch (_Error) {
 						ErrorLog(
-							`Network fetch failed entirely for Skip=Worker ${Path}`,
+							`Network error fetching Skip=Worker ${Path}:`,
+							_Error,
 						);
-					}
 
-					return Response;
+						return new Response(`Failed to fetch ${Path}`, {
+							status: 500,
+						});
+					}
 				})
 				.catch((_Error) => {
 					ErrorLog(
@@ -221,68 +295,14 @@ self.addEventListener("fetch", (Event) => {
 		return;
 	}
 
-	if (Request.method !== "GET" || _URL.origin !== self.origin) {
-		Log(
-			`Ignoring non-GET or cross-origin request: ${Request.method} ${Path}`,
-		);
-
-		return;
-	}
-
-	if (SHIM_MAP[Path]) {
-		const PathCache = SHIM_MAP[Path];
-
-		Log(`Serving shim for ${Path} from cache (${PathCache})`);
-
-		Event.respondWith(
-			caches
-				.open(CACHE_SHIM)
-				.then((Load) => Load.match(PathCache))
-				.then((Response) => {
-					if (Response) {
-						return Response;
-					}
-
-					WarnLog(
-						`Shim not found in cache: ${Path}. Fetching from network...`,
-					);
-
-					return fetch(PathCache).then((_Response) => {
-						if (!_Response.ok) {
-							ErrorLog(
-								`Network fetch failed for shim ${PathCache} Status: ${_Response.status}`,
-							);
-						}
-
-						caches
-							.open(CACHE_SHIM)
-							.then((Cache) =>
-								Cache.put(PathCache, _Response.clone()),
-							);
-
-						return _Response;
-					});
-				})
-				.catch((_Error) => {
-					ErrorLog(`Error serving shim ${Path}:`, _Error);
-
-					return new Response(`Error serving shim ${Path}`, {
-						status: 500,
-					});
-				}),
-		);
-
-		return;
-	}
-
-	if (Path.endsWith(".css") && Path.startsWith("/Static/VSCode/")) {
-		Log(`Intercepting CSS import: ${Path}`);
+	if (Path.startsWith("/Static/Application/") && Path.endsWith(".css")) {
+		Log(`Intercepting Application CSS request as JS Module: ${Path}`);
 
 		Event.respondWith(
 			caches
 				.open(CACHE_ASSET)
-				.then(async (Load) => {
-					const Cache = await Load.match(Request);
+				.then(async (cache) => {
+					const Cache = await cache.match(Request);
 
 					if (Cache) {
 						Log(
@@ -295,161 +315,113 @@ self.addEventListener("fetch", (Event) => {
 					}
 
 					Log(
-						`CSS not cached. Notifying client ${Client} for ${Request.url}`,
+						`CSS not cached as JS module. Notifying client ${Client} for ${Request.url}`,
 					);
 
-					await Notify(Client, Request.url);
+					Notify(Client, Request.url).catch((_Error) =>
+						ErrorLog(
+							`Failed to Notify client for CSS ${Request.url}:`,
+							_Error,
+						),
+					);
 
 					Log(
-						`Creating/caching empty JS module for CSS request: ${Path}`,
+						`Creating/caching empty JS module response for CSS request: ${Path}`,
 					);
 
 					const _Response = new Response("export default {};", {
 						status: 200,
-
 						headers: {
 							"Content-Type":
 								"application/javascript; charset=utf-8",
 						},
 					});
 
-					await Load.put(Request, _Response.clone());
+					await cache.put(Request, _Response.clone());
 
 					return _Response;
 				})
 				.catch((_Error) => {
 					ErrorLog(
-						`Error handling CSS intercept response for ${Path}:`,
-
+						`Error during CSS-as-JS interception for ${Path}:`,
 						_Error,
 					);
 
-					return new Response("// Error handling CSS intercept", {
-						status: 500,
-
-						headers: { "Content-Type": "application/javascript" },
-					});
+					return new Response(
+						`// Error intercepting CSS as JS ${Path}`,
+						{
+							status: 500,
+							headers: {
+								"Content-Type": "application/javascript",
+							},
+						},
+					);
 				}),
 		);
 
 		return;
 	}
 
-	// if (Path.startsWith("/Static/VSCode/")) {
-	// 	Log(`Handling asset request (Network-First): ${Path}`);
-	// 	const URL_REMOTE = BASE_REMOTE + Path;
-	// 	Event.respondWith(
-	// 		fetch(URL_REMOTE)
-	// 			.then(async (_Response) => {
-	// 				if (_Response && _Response.ok) {
-	// 					Log(`Fetched asset from remote: ${URL_REMOTE}`);
-	// 					const Cache = await caches.open(CACHE_ASSET);
-	// 					await Cache.put(Request, _Response.clone());
-	// 					return _Response;
-	// 				}
-	// 				WarnLog(
-	// 					`Remote fetch failed for ${URL_REMOTE} with status: ${_Response.status}. Trying cache...`,
-	// 				);
-	// 				return caches
-	// 					.open(CACHE_ASSET)
-	// 					.then((cache) => cache.match(Request))
-	// 					.then((Response) => {
-	// 						if (Response) {
-	// 							Log(
-	// 								`Serving asset from cache after remote fail: ${Path}`,
-	// 							);
-	// 							return Response;
-	// 						}
-	// 						WarnLog(
-	// 							`Asset not found in cache either: ${Path}. Returning original network error.`,
-	// 						);
-	// 						return _Response;
-	// 					});
-	// 			})
-	// 			.catch(async (_Error) => {
-	// 				ErrorLog(`Remote fetch failed for ${URL_REMOTE}:`, _Error);
-	// 				WarnLog(`Trying cache for ${Path}...`);
-	// 				const _Response = await (
-	// 					await caches.open(CACHE_ASSET)
-	// 				).match(Request);
-	// 				if (_Response) {
-	// 					Log(
-	// 						`Serving asset from cache after remote error: ${Path}`,
-	// 					);
-	// 					return _Response;
-	// 				}
-	// 				ErrorLog(
-	// 					`Asset not found in cache after remote error: ${Path}`,
-	// 				);
-	// 				return new Response(`Failed to fetch asset ${Path}`, {
-	// 					status: 503,
-	// 					statusText: "Service Unavailable",
-	// 				});
-	// 			}),
-	// 	);
-	// 	return;
-	// }
-
-	if (Path.startsWith("/Static/VSCode/")) {
-		Log(`Handling asset request (Cache-First): ${Path}`);
+	if (Path.startsWith("/Static/Application/")) {
+		Log(`Handling Application asset request (Cache-First): ${Path}`);
 
 		Event.respondWith(
 			caches
 				.open(CACHE_ASSET)
-				.then(async (Cache) => {
-					const Cached = await Cache.match(Request);
+				.then(async (cache) => {
+					const Cache = await cache.match(Request);
 
-					if (Cached) {
-						Log(`Serving asset from cache: ${Path}`);
+					if (Cache) {
+						Log(`Serving Application asset from cache: ${Path}`);
 
-						return Cached;
+						return Cache;
 					}
 
-					Log(`Fetching asset from network: ${Path}`);
+					Log(`Fetching Application asset from network: ${Path}`);
 
 					try {
-						const Network = await fetch(Request);
+						const _Response = await fetch(Request);
 
-						if (Network && Network.ok) {
+						if (_Response && _Response.ok) {
 							Log(
-								`Caching successful network response for asset: ${Path}`,
+								`Caching successful network response for Application asset: ${Path}`,
 							);
 
-							await Cache.put(Request, Network.clone());
-						} else if (!Network) {
+							await cache.put(Request, _Response.clone());
+						} else if (!_Response) {
 							ErrorLog(
-								`Network fetch failed for ${Path} (no response)`,
-							);
-
-							return new Response(
-								`Failed to fetch asset ${Path} (no response)`,
-								{ status: 504 },
+								`Network fetch failed for Application asset ${Path} (no response)`,
 							);
 						} else {
 							WarnLog(
-								`Network fetch failed for ${Path} with status: ${Network.status}`,
-							);
-
-							return new Response(
-								`Failed to fetch asset ${Path} (status: ${Network.status})`,
-								{
-									status: Network.status,
-									statusText: Network.statusText,
-								},
+								`Network fetch failed for Application asset ${Path} with status: ${_Response.status}`,
 							);
 						}
 
-						return Network;
+						return (
+							_Response ||
+							new Response(
+								`Failed to fetch asset ${Path} (no response)`,
+								{ status: 504 },
+							)
+						);
 					} catch (_Error) {
-						ErrorLog(`Network fetch failed for ${Path}:`, _Error);
+						ErrorLog(
+							`Network fetch failed for Application asset ${Path}:`,
+							_Error,
+						);
 
-						return new Response(`Failed to fetch asset ${Path}`, {
-							status: 503,
-						});
+						return new Response(
+							`Failed to fetch asset ${Path} while offline`,
+							{ status: 503 },
+						);
 					}
 				})
 				.catch((_Error) => {
-					ErrorLog(`Error accessing asset cache:`, _Error);
+					ErrorLog(
+						`Error accessing asset cache for ${Path}:`,
+						_Error,
+					);
 
 					return fetch(Request);
 				}),
@@ -458,16 +430,18 @@ self.addEventListener("fetch", (Event) => {
 		return;
 	}
 
-	WarnLog(`Request not explicitly handled by SW: ${Path}`);
+	WarnLog(
+		`Request not handled by specific strategies: ${Path}. Letting browser handle.`,
+	);
 });
 
 self.addEventListener("message", (event) => {
-	Log(`[Worker] Received message from client:`, event.data);
+	Log(`Received message from client:`, event.data);
 
 	// Example: Handle a specific message type
 	// if (event.data && event.data.type === 'CLEAR_CACHE') {
 
-	//     Log('[Worker] Received instruction to clear cache.');
+	//     Log('Received instruction to clear cache.');
 
 	//     // Add cache clearing logic here if needed
 	// }

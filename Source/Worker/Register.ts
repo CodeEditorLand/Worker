@@ -1,14 +1,14 @@
 declare global {
 	interface Window {
-		_WORKER: string;
+		URLWorker: string;
 	}
 }
 
-const Path = typeof window._WORKER === "string" ? window._WORKER : "/Worker.js";
+const Path = typeof window.URLWorker === "string" ? window.URLWorker : "/Worker.js";
 
-const Scope = "/VSCode";
+const Scope = "/Application";
 
-const Reload = "_RELOAD_WORKER";
+const Reload = "WorkerReload";
 
 export const Log = (..._Message: any[]) => {
 	console.log(`[Register]`, ..._Message);

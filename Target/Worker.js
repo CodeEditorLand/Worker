@@ -1,1 +1,322 @@
-const l="v0.0.1",f=`Shim-${l}`,u=`Asset-${l}`,g=["/Static/Shim/Variable.js"],S={"/Static/Shim/Variable.js":"/Static/Shim/Variable.js"},p=new URLSearchParams(self.location.search).get("BASE_REMOTE")||"http://localhost",r=(...s)=>{console.log(`[Worker ${l}]`,`(Remote: ${p})`,...s)},c=(...s)=>{console.error(`[Worker ${l}]`,`(Remote: ${p})`,...s)},h=(...s)=>{console.warn(`[Worker ${l}]`,`(Remote: ${p})`,...s)},$=async(s,n)=>{if(!s){h(`No Client available for CSS request ${n}. Cannot send postMessage.`);return}try{const e=await self.clients.get(s);e?(r(`Sending Load instruction to Client ${e} for ${n}`),e.postMessage({_LOAD_CSS_WORKER:n})):h(`Client ${e} not found for postMessage regarding ${n}.`)}catch(e){c(`Error sending postMessage to Client ${s} for ${n}:`,e)}};self.addEventListener("install",s=>{r("Installing..."),s.waitUntil(caches.open(f).then(n=>{r("Precaching shims:",g),n.addAll(g)}).then(()=>self.skipWaiting()).catch(n=>c("Shim Precaching failed:",n)))}),self.addEventListener("activate",s=>{r("Activating..."),s.waitUntil(Promise.all([caches.keys().then(n=>Promise.all(n.map(e=>[f,u].includes(e)?Promise.resolve():(r(`Deleting old cache: ${e}`),caches.delete(e))))),self.clients.claim()]).then(()=>(r("New worker activated. Notifying clients."),self.clients.matchAll({type:"window"}))).then(n=>{n.forEach(e=>{r(`Sending New to client ${e.id}`),e.postMessage({Version:"New"})})}).catch(n=>c("Activation failed:",n)))}),self.addEventListener("fetch",s=>{const n=new URL(s.request.url),e=n.pathname,o=s.request,d=s.clientId;if([new URL(self.location.href).pathname,new URL(self.registration.scope+"Worker/Register.js",self.location.origin).pathname,new URL(self.registration.scope+"Worker/CSS/Load.js",self.location.origin).pathname].includes(e)){r(`Ignoring fetch for critical script: ${e}`);return}if(r(`Fetch event for: ${e}`,{Method:o.method,Destination:o.destination,URL:o.url,Origin:n.origin,Scope:self.registration.scope}),n.searchParams.has("Skip")&&n.searchParams.get("Skip")==="Worker"){r(`Handling request with Skip=Worker: ${e}`),s.respondWith(caches.open(u).then(async i=>{const a=await i.match(o);if(a)return r(`Cache hit for Skip=Worker: ${e}`),a;r(`Cache miss for Skip=Worker, fetching: ${e}`);const t=await fetch(o);return t.ok?(r(`Caching successful network response for Skip=Worker: ${e}`),await i.put(o,t.clone())):t?h(`Network fetch failed for Skip=Worker ${e} Status: ${t.status}`):c(`Network fetch failed entirely for Skip=Worker ${e}`),t}).catch(i=>(c(`Error handling Skip=Worker request for ${e}:`,i),fetch(o))));return}if(o.method!=="GET"||n.origin!==self.origin){r(`Ignoring non-GET or cross-origin request: ${o.method} ${e}`);return}if(S[e]){const i=S[e];r(`Serving shim for ${e} from cache (${i})`),s.respondWith(caches.open(f).then(a=>a.match(i)).then(a=>a||(h(`Shim not found in cache: ${e}. Fetching from network...`),fetch(i).then(t=>(t.ok||c(`Network fetch failed for shim ${i} Status: ${t.status}`),caches.open(f).then(m=>m.put(i,t.clone())),t)))).catch(a=>(c(`Error serving shim ${e}:`,a),new Response(`Error serving shim ${e}`,{status:500}))));return}if(e.endsWith(".css")&&e.startsWith("/Static/VSCode/")){r(`Intercepting CSS import: ${e}`),s.respondWith(caches.open(u).then(async i=>{const a=await i.match(o);if(a)return r(`Returning cached empty JS module for CSS request: ${e}`),await $(d,o.url),a;r(`CSS not cached. Notifying client ${d} for ${o.url}`),await $(d,o.url),r(`Creating/caching empty JS module for CSS request: ${e}`);const t=new Response("export default {};",{status:200,headers:{"Content-Type":"application/javascript; charset=utf-8"}});return await i.put(o,t.clone()),t}).catch(i=>(c(`Error handling CSS intercept response for ${e}:`,i),new Response("// Error handling CSS intercept",{status:500,headers:{"Content-Type":"application/javascript"}}))));return}if(e.startsWith("/Static/VSCode/")){r(`Handling asset request (Cache-First): ${e}`),s.respondWith(caches.open(u).then(async i=>{const a=await i.match(o);if(a)return r(`Serving asset from cache: ${e}`),a;r(`Fetching asset from network: ${e}`);try{const t=await fetch(o);if(t&&t.ok)r(`Caching successful network response for asset: ${e}`),await i.put(o,t.clone());else return t?(h(`Network fetch failed for ${e} with status: ${t.status}`),new Response(`Failed to fetch asset ${e} (status: ${t.status})`,{status:t.status,statusText:t.statusText})):(c(`Network fetch failed for ${e} (no response)`),new Response(`Failed to fetch asset ${e} (no response)`,{status:504}));return t}catch(t){return c(`Network fetch failed for ${e}:`,t),new Response(`Failed to fetch asset ${e}`,{status:503})}}).catch(i=>(c("Error accessing asset cache:",i),fetch(o))));return}h(`Request not explicitly handled by SW: ${e}`)}),self.addEventListener("message",s=>{r("[Worker] Received message from client:",s.data)});var w={};export{w as default};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+const VERSION = "v0.0.1";
+const CACHE_CORE = `Core-${VERSION}`;
+const CACHE_SHIM = `Shim-${VERSION}`;
+const CACHE_ASSET = `Asset-${VERSION}`;
+const CACHE = [CACHE_CORE, CACHE_SHIM, CACHE_ASSET];
+const CORE_PRECACHE = [
+  "/Aplication/",
+  "/Worker/Register.js",
+  "/Worker/CSS/Load.js",
+  "/Worker/CSS/Notify.js",
+  "/Static/Shim/Variable.js"
+];
+const BASE_REMOTE = new URLSearchParams(self.location.search).get("BASE_REMOTE") || "https://localhost";
+const Log = /* @__PURE__ */ __name((..._Message) => {
+  console.log(`[Worker ${VERSION}]`, `(Remote: ${BASE_REMOTE})`, ..._Message);
+}, "Log");
+const ErrorLog = /* @__PURE__ */ __name((..._Message) => {
+  console.error(
+    `[Worker ${VERSION}]`,
+    `(Remote: ${BASE_REMOTE})`,
+    ..._Message
+  );
+}, "ErrorLog");
+const WarnLog = /* @__PURE__ */ __name((..._Message) => {
+  console.warn(
+    `[Worker ${VERSION}]`,
+    `(Remote: ${BASE_REMOTE})`,
+    ..._Message
+  );
+}, "WarnLog");
+const Notify = /* @__PURE__ */ __name(async (Client, URL2) => {
+  if (!Client) {
+    WarnLog(
+      `No Client available for CSS request ${URL2}. Cannot send postMessage.`
+    );
+    return;
+  }
+  try {
+    const Identifier = await self.clients.get(Client);
+    if (Identifier) {
+      Log(`Sending Load instruction to Client ${Identifier} for ${URL2}`);
+      Identifier.postMessage({
+        _LOAD_CSS_WORKER: URL2
+      });
+    } else {
+      WarnLog(
+        `Client ${Identifier} not found for postMessage regarding ${URL2}.`
+      );
+    }
+  } catch (error) {
+    ErrorLog(
+      `Error sending postMessage to Client ${Client} for ${URL2}:`,
+      error
+    );
+  }
+}, "Notify");
+self.addEventListener("install", (Event) => {
+  Log(`Installing version ${VERSION}...`);
+  Event.waitUntil(
+    Promise.all([
+      caches.open(CACHE_CORE).then((cache) => {
+        Log(`Precaching Core Assets:`, CORE_PRECACHE);
+        return cache.addAll(CORE_PRECACHE);
+      }).catch((_Error) => ErrorLog("Core Precaching failed:", _Error))
+    ]).then(() => {
+      Log("Precaching complete. Activating immediately.");
+      return self.skipWaiting();
+    })
+  );
+});
+self.addEventListener("activate", (Event) => {
+  Log(`Activating version ${VERSION}...`);
+  Event.waitUntil(
+    Promise.all([
+      caches.keys().then(
+        (Cache) => Promise.all(
+          Cache.map((Cache2) => {
+            if (!CACHE.includes(Cache2)) {
+              Log(`Deleting old cache: ${Cache2}`);
+              return caches.delete(Cache2);
+            }
+            return Promise.resolve();
+          })
+        )
+      ),
+      self.clients.claim()
+    ]).then(() => {
+      Log(`Version ${VERSION} activated and controlling clients.`);
+      return self.clients.matchAll({ type: "window" }).then(
+        (Client) => Client.forEach((Client2) => {
+          Log(
+            `Sending New Version message to client ${Client2.id}`
+          );
+          Client2.postMessage({ Version: "New" });
+        })
+      );
+    }).catch((_Error) => ErrorLog(`Activation failed:`, _Error))
+  );
+});
+self.addEventListener("fetch", (Event) => {
+  const Request = Event.request;
+  const _URL = new URL(Request.url);
+  const Path = _URL.pathname;
+  const Client = Event.clientId;
+  Log(`Fetch event for: ${Path}`, {
+    Method: Request.method,
+    Destination: Request.destination,
+    URL: Request.url,
+    Origin: _URL.origin,
+    Scope: self.registration.scope
+  });
+  if (_URL.origin === self.origin && Path === new URL(self.location.href).pathname) {
+    Log("Ignoring fetch for SW script itself:", Path);
+    return;
+  }
+  if (Request.method !== "GET") {
+    Log(`Ignoring non-GET request: ${Request.method} ${Path}`);
+    return;
+  }
+  if (Request.mode === "navigate") {
+    Log(`Handling navigation request (Network-First): ${Path}`);
+    Event.respondWith(
+      (async () => {
+        try {
+          const _Response2 = await fetch(Request);
+          if (_Response2 && _Response2.ok) {
+            Log(`Navigation request fetched from network: ${Path}`);
+            (await caches.open(CACHE_CORE)).put(
+              Request,
+              _Response2.clone()
+            );
+            return _Response2;
+          }
+          WarnLog(
+            `Navigation network fetch failed or returned error (${_Response2.status}): ${Path}. Trying cache...`
+          );
+        } catch (_Error) {
+          WarnLog(
+            `Navigation network fetch failed entirely: ${Path}. Trying cache...`,
+            _Error
+          );
+        }
+        const _Response = await (await caches.open(CACHE_CORE)).match(Request);
+        if (_Response) {
+          Log(`Serving navigation request from cache: ${Path}`);
+          return _Response;
+        }
+        ErrorLog(
+          `Navigation request failed on network and cache: ${Path}`
+        );
+        return new Response(
+          "Network error: You appear to be offline and the page is not cached.",
+          {
+            status: 503,
+            statusText: "Service Unavailable",
+            headers: { "Content-Type": "text/plain" }
+          }
+        );
+      })()
+    );
+    return;
+  }
+  if (_URL.searchParams.has("Skip") && _URL.searchParams.get("Skip") === "Worker") {
+    Log(`Handling request with Skip=Worker: ${Path}`);
+    Event.respondWith(
+      caches.open(CACHE_ASSET).then(async (Load) => {
+        const Cache = await Load.match(Request);
+        if (Cache) {
+          Log(`Cache hit for Skip=Worker: ${Path}`);
+          return Cache;
+        }
+        Log(`Cache miss for Skip=Worker, fetching: ${Path}`);
+        try {
+          const _Response = await fetch(Request);
+          if (_Response && _Response.ok) {
+            Log(
+              `Caching successful network response for Skip=Worker: ${Path}`
+            );
+            await Load.put(Request, _Response.clone());
+          } else if (_Response) {
+            WarnLog(
+              `Network fetch failed for Skip=Worker ${Path} Status: ${_Response.status}`
+            );
+          } else {
+            ErrorLog(
+              `Network fetch failed entirely for Skip=Worker ${Path}`
+            );
+          }
+          return _Response;
+        } catch (_Error) {
+          ErrorLog(
+            `Network error fetching Skip=Worker ${Path}:`,
+            _Error
+          );
+          return new Response(`Failed to fetch ${Path}`, {
+            status: 500
+          });
+        }
+      }).catch((_Error) => {
+        ErrorLog(
+          `Error handling Skip=Worker request for ${Path}:`,
+          _Error
+        );
+        return fetch(Request);
+      })
+    );
+    return;
+  }
+  if (Path.startsWith("/Static/Application/") && Path.endsWith(".css")) {
+    Log(`Intercepting Application CSS request as JS Module: ${Path}`);
+    Event.respondWith(
+      caches.open(CACHE_ASSET).then(async (cache) => {
+        const Cache = await cache.match(Request);
+        if (Cache) {
+          Log(
+            `Returning cached empty JS module for CSS request: ${Path}`
+          );
+          await Notify(Client, Request.url);
+          return Cache;
+        }
+        Log(
+          `CSS not cached as JS module. Notifying client ${Client} for ${Request.url}`
+        );
+        Notify(Client, Request.url).catch(
+          (_Error) => ErrorLog(
+            `Failed to Notify client for CSS ${Request.url}:`,
+            _Error
+          )
+        );
+        Log(
+          `Creating/caching empty JS module response for CSS request: ${Path}`
+        );
+        const _Response = new Response("export default {};", {
+          status: 200,
+          headers: {
+            "Content-Type": "application/javascript; charset=utf-8"
+          }
+        });
+        await cache.put(Request, _Response.clone());
+        return _Response;
+      }).catch((_Error) => {
+        ErrorLog(
+          `Error during CSS-as-JS interception for ${Path}:`,
+          _Error
+        );
+        return new Response(
+          `// Error intercepting CSS as JS ${Path}`,
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/javascript"
+            }
+          }
+        );
+      })
+    );
+    return;
+  }
+  if (Path.startsWith("/Static/Application/")) {
+    Log(`Handling Application asset request (Cache-First): ${Path}`);
+    Event.respondWith(
+      caches.open(CACHE_ASSET).then(async (cache) => {
+        const Cache = await cache.match(Request);
+        if (Cache) {
+          Log(`Serving Application asset from cache: ${Path}`);
+          return Cache;
+        }
+        Log(`Fetching Application asset from network: ${Path}`);
+        try {
+          const _Response = await fetch(Request);
+          if (_Response && _Response.ok) {
+            Log(
+              `Caching successful network response for Application asset: ${Path}`
+            );
+            await cache.put(Request, _Response.clone());
+          } else if (!_Response) {
+            ErrorLog(
+              `Network fetch failed for Application asset ${Path} (no response)`
+            );
+          } else {
+            WarnLog(
+              `Network fetch failed for Application asset ${Path} with status: ${_Response.status}`
+            );
+          }
+          return _Response || new Response(
+            `Failed to fetch asset ${Path} (no response)`,
+            { status: 504 }
+          );
+        } catch (_Error) {
+          ErrorLog(
+            `Network fetch failed for Application asset ${Path}:`,
+            _Error
+          );
+          return new Response(
+            `Failed to fetch asset ${Path} while offline`,
+            { status: 503 }
+          );
+        }
+      }).catch((_Error) => {
+        ErrorLog(
+          `Error accessing asset cache for ${Path}:`,
+          _Error
+        );
+        return fetch(Request);
+      })
+    );
+    return;
+  }
+  WarnLog(
+    `Request not handled by specific strategies: ${Path}. Letting browser handle.`
+  );
+});
+self.addEventListener("message", (event) => {
+  Log(`Received message from client:`, event.data);
+});
+var Worker_default = {};
+export {
+  Worker_default as default
+};
+//# sourceMappingURL=Worker.js.map
