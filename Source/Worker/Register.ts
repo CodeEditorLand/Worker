@@ -4,7 +4,8 @@ declare global {
 	}
 }
 
-const Path = typeof window.URLWorker === "string" ? window.URLWorker : "/Worker.js";
+const Path =
+	typeof window.URLWorker === "string" ? window.URLWorker : "/Worker.js";
 
 const Scope = "/Application";
 
