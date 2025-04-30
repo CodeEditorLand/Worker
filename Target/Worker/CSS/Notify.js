@@ -1,1 +1,41 @@
-const s=(...o)=>{console.log("[Notify CSS]",...o)},t=(...o)=>{console.error("[Notify CSS]",...o)},r=(...o)=>{console.warn("[Notify CSS]",...o)};var a=async(o,n)=>{if(!o){r(`No Client available for CSS request ${n}. Cannot send postMessage.`);return}try{const e=await self.clients.get(o);e?(s(`Sending Load instruction to Client ${e} for ${n}`),e.postMessage({_LOAD_CSS_WORKER:n})):r(`Client ${e} not found for postMessage regarding ${n}.`)}catch(e){t(`Error sending postMessage to Client ${o} for ${n}:`,e)}};export{a as default};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+const Log = /* @__PURE__ */ __name((..._Message) => {
+  console.log(`[Notify CSS]`, ..._Message);
+}, "Log");
+const ErrorLog = /* @__PURE__ */ __name((..._Message) => {
+  console.error(`[Notify CSS]`, ..._Message);
+}, "ErrorLog");
+const WarnLog = /* @__PURE__ */ __name((..._Message) => {
+  console.warn(`[Notify CSS]`, ..._Message);
+}, "WarnLog");
+var Notify_default = /* @__PURE__ */ __name(async (Client, URL) => {
+  if (!Client) {
+    WarnLog(
+      `No Client available for CSS request ${URL}. Cannot send postMessage.`
+    );
+    return;
+  }
+  try {
+    const Identifier = await self.clients.get(Client);
+    if (Identifier) {
+      Log(`Sending Load instruction to Client ${Identifier} for ${URL}`);
+      Identifier.postMessage({
+        _LOAD_CSS_WORKER: URL
+      });
+    } else {
+      WarnLog(
+        `Client ${Identifier} not found for postMessage regarding ${URL}.`
+      );
+    }
+  } catch (error) {
+    ErrorLog(
+      `Error sending postMessage to Client ${Client} for ${URL}:`,
+      error
+    );
+  }
+}, "default");
+export {
+  Notify_default as default
+};
+//# sourceMappingURL=Notify.js.map

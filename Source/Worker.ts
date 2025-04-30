@@ -232,9 +232,9 @@ self.addEventListener("fetch", (Event) => {
 
 	if (
 		_URL.searchParams.has("Skip") &&
-		_URL.searchParams.get("Skip") === "Worker"
+		_URL.searchParams.get("Skip") === "Intercept"
 	) {
-		Log(`Handling request with Skip=Worker: ${Path}`);
+		Log(`Handling request with Skip=Intercept: ${Path}`);
 
 		Event.respondWith(
 			caches
@@ -243,36 +243,36 @@ self.addEventListener("fetch", (Event) => {
 					const Cache = await Load.match(Request);
 
 					if (Cache) {
-						Log(`Cache hit for Skip=Worker: ${Path}`);
+						Log(`Cache hit for Skip=Intercept: ${Path}`);
 
 						return Cache;
 					}
 
-					Log(`Cache miss for Skip=Worker, fetching: ${Path}`);
+					Log(`Cache miss for Skip=Intercept, fetching: ${Path}`);
 
 					try {
 						const _Response = await fetch(Request);
 
 						if (_Response && _Response.ok) {
 							Log(
-								`Caching successful network response for Skip=Worker: ${Path}`,
+								`Caching successful network response for Skip=Intercept: ${Path}`,
 							);
 
 							await Load.put(Request, _Response.clone());
 						} else if (_Response) {
 							WarnLog(
-								`Network fetch failed for Skip=Worker ${Path} Status: ${_Response.status}`,
+								`Network fetch failed for Skip=Intercept ${Path} Status: ${_Response.status}`,
 							);
 						} else {
 							ErrorLog(
-								`Network fetch failed entirely for Skip=Worker ${Path}`,
+								`Network fetch failed entirely for Skip=Intercept ${Path}`,
 							);
 						}
 
 						return _Response;
 					} catch (_Error) {
 						ErrorLog(
-							`Network error fetching Skip=Worker ${Path}:`,
+							`Network error fetching Skip=Intercept ${Path}:`,
 							_Error,
 						);
 
@@ -283,7 +283,7 @@ self.addEventListener("fetch", (Event) => {
 				})
 				.catch((_Error) => {
 					ErrorLog(
-						`Error handling Skip=Worker request for ${Path}:`,
+						`Error handling Skip=Intercept request for ${Path}:`,
 						_Error,
 					);
 

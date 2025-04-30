@@ -15,7 +15,7 @@ Worker and the client application at runtime using `postMessage`.
 1.  **Initial JS Import:** A JavaScript module in your application attempts to
     import a CSS file (e.g., `/Static/CodeEditorLand/component.css`).
 2.  **Service Worker Intercept #1:** The worker's `fetch` listener intercepts
-    this request. Because the URL doesn't contain the special `?Skip=Worker`
+    this request. Because the URL doesn't contain the special `?Skip=Intercept`
     parameter, it proceeds with the CSS handling logic.
 3.  **Notify Client:** The worker calls an internal `Notify` function. This
     function finds the client window that made the request and sends it a
@@ -30,16 +30,16 @@ Worker and the client application at runtime using `postMessage`.
     function (`window._LOAD_CSS_WORKER`) with the original CSS
     URL.
 7.  **Client Modifies URL & Creates `<link>`:** The
-    `_LOAD_CSS_WORKER` function appends the `?Skip=Worker`
+    `_LOAD_CSS_WORKER` function appends the `?Skip=Intercept`
     query parameter to the received CSS URL. It then creates a standard
     `<link rel="stylesheet">` tag, setting its `href` to this _modified_ URL,
     and appends it to the document's `<head>`.
 8.  **Browser Fetches for `<link>`:** The browser sees the new `<link>` tag and
     initiates a _second_ fetch request for the CSS file, this time using the URL
-    _with_ the `?Skip=Worker` parameter.
+    _with_ the `?Skip=Intercept` parameter.
 9.  **Service Worker Intercept #2:** The worker intercepts this second request.
 10. **Service Worker Bypasses & Serves CSS:** The worker detects the
-    `?Skip=Worker` parameter. It bypasses the notification/JS-injection logic
+    `?Skip=Intercept` parameter. It bypasses the notification/JS-injection logic
     and proceeds to fetch the _actual_ CSS content using a cache-first strategy
     (looking for the URL _including_ the parameter in the cache, or fetching
     from the network). It responds with the real CSS content
@@ -48,7 +48,7 @@ Worker and the client application at runtime using `postMessage`.
     the styles as expected.
 
 This two-step process, coordinated via `postMessage` and distinguished by the
-`Skip=Worker` parameter, allows the initial JavaScript import to resolve quickly
+`Skip=Intercept` parameter, allows the initial JavaScript import to resolve quickly
 while triggering the standard browser mechanism for loading the actual CSS
 styles without causing an infinite loop in the Service Worker.
 

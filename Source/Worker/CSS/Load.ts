@@ -15,7 +15,7 @@ const ErrorLog = (..._Message: any[]) => {
 window._LOAD_CSS_WORKER = (_CSS: string): void => {
 	Log(`Received request to load: ${_CSS}`);
 
-	const CSS = _CSS + (_CSS.includes("?") ? "&" : "?") + "Skip=Worker";
+	const CSS = _CSS + (_CSS.includes("?") ? "&" : "?") + "Skip=Intercept";
 
 	try {
 		if (document.querySelector(`link[href="${CSS}"]`)) {
@@ -50,20 +50,23 @@ window._LOAD_CSS_WORKER = (_CSS: string): void => {
 
 Log("Initialized and _LOAD_CSS_WORKER attached to window.");
 
-navigator.serviceWorker.addEventListener("message", (Event) => {
-	if (Event.data && Event.data._LOAD_CSS_WORKER) {
-		const URL = Event.data._LOAD_CSS_WORKER;
+// TODO: SPLIT THIS SPECIFICALLY FOR WEB SERVICE WORKER
+if ("serviceWorker" in navigator) {
+	navigator.serviceWorker.addEventListener("message", (Event) => {
+		if (Event.data && Event.data._LOAD_CSS_WORKER) {
+			const URL = Event.data._LOAD_CSS_WORKER;
 
-		Log(`[Client] Received instruction from [SW] to load: ${URL}`);
+			Log(`[Client] Received instruction from [SW] to load: ${URL}`);
 
-		if (typeof window._LOAD_CSS_WORKER === "function") {
-			window._LOAD_CSS_WORKER(URL);
-		} else {
-			ErrorLog(
-				"[Client] _LOAD_CSS_WORKER function not found when receiving [SW] message.",
-			);
+			if (typeof window._LOAD_CSS_WORKER === "function") {
+				window._LOAD_CSS_WORKER(URL);
+			} else {
+				ErrorLog(
+					"[Client] _LOAD_CSS_WORKER function not found when receiving [SW] message.",
+				);
+			}
 		}
-	}
-});
+	});
+}
 
 export default {};
