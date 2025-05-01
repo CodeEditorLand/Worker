@@ -16,7 +16,6 @@ const CORE_PRECACHE = [
 	"/Application/",
 	"/Worker/Register.js",
 	"/Worker/CSS/Load.js",
-	"/Worker/CSS/Notify.js",
 	"/Static/Shim/Variable.js",
 ];
 
@@ -53,52 +52,6 @@ const WarnLog = __DEV__
 			);
 		}
 	: () => {};
-
-const Notify = async (
-	Client: string | null | undefined,
-
-	URL: string,
-): Promise<void> => {
-	if (!Client) {
-		__DEV__
-			? WarnLog(
-					`No Client available for CSS request ${URL}. Cannot send postMessage.`,
-				)
-			: {};
-
-		return;
-	}
-
-	try {
-		const Identifier = await self.clients.get(Client);
-
-		if (Identifier) {
-			__DEV__
-				? Log(
-						`Sending Load instruction to Client ${Identifier} for ${URL}`,
-					)
-				: {};
-
-			Identifier.postMessage({
-				_LOAD_CSS_WORKER: URL,
-			});
-		} else {
-			__DEV__
-				? WarnLog(
-						`Client ${Identifier} not found for postMessage regarding ${URL}.`,
-					)
-				: {};
-		}
-	} catch (error) {
-		__DEV__
-			? ErrorLog(
-					`Error sending postMessage to Client ${Client} for ${URL}:`,
-
-					error,
-				)
-			: {};
-	}
-};
 
 self.addEventListener("install", (Event) => {
 	__DEV__ ? Log(`Installing version ${VERSION}...`) : {};
@@ -371,19 +324,17 @@ self.addEventListener("fetch", (Event) => {
 		Event.respondWith(
 			caches
 				.open(CACHE_ASSET)
-				.then(async (cache) => {
-					const Cache = await cache.match(Request);
+				.then(async (Cache) => {
+					const __Response = await Cache.match(Request);
 
-					if (Cache) {
+					if (__Response) {
 						__DEV__
 							? Log(
 									`Returning cached empty JS module for CSS request: ${Path}`,
 								)
 							: {};
 
-						await Notify(Client, Request.url);
-
-						return Cache;
+						return __Response;
 					}
 
 					__DEV__
@@ -392,30 +343,24 @@ self.addEventListener("fetch", (Event) => {
 							)
 						: {};
 
-					Notify(Client, Request.url).catch((_Error) =>
-						__DEV__
-							? ErrorLog(
-									`Failed to Notify client for CSS ${Request.url}:`,
-									_Error,
-								)
-							: {},
-					);
-
 					__DEV__
 						? Log(
 								`Creating/caching empty JS module response for CSS request: ${Path}`,
 							)
 						: {};
 
-					const _Response = new Response("export default {};", {
-						status: 200,
-						headers: {
-							"Content-Type":
-								"application/javascript; charset=utf-8",
+					const _Response = new Response(
+						`window._LOAD_CSS_WORKER('${Path}'); export default {};`,
+						{
+							status: 200,
+							headers: {
+								"Content-Type":
+									"application/javascript; charset=utf-8",
+							},
 						},
-					});
+					);
 
-					await cache.put(Request, _Response.clone());
+					await Cache.put(Request, _Response.clone());
 
 					return _Response;
 				})

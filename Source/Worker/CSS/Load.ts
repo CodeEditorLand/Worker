@@ -56,27 +56,4 @@ window._LOAD_CSS_WORKER = (_CSS: string): void => {
 
 __DEV__ ? Log("Initialized and _LOAD_CSS_WORKER attached to window.") : {};
 
-// TODO: SPLIT THIS SPECIFICALLY FOR WEB SERVICE WORKER
-if ("serviceWorker" in navigator) {
-	navigator.serviceWorker.addEventListener("message", (Event) => {
-		if (Event.data && Event.data._LOAD_CSS_WORKER) {
-			const URL = Event.data._LOAD_CSS_WORKER;
-
-			__DEV__
-				? Log(`[Client] Received instruction from [SW] to load: ${URL}`)
-				: {};
-
-			if (typeof window._LOAD_CSS_WORKER === "function") {
-				window._LOAD_CSS_WORKER(URL);
-			} else {
-				__DEV__
-					? ErrorLog(
-							"[Client] _LOAD_CSS_WORKER function not found when receiving [SW] message.",
-						)
-					: {};
-			}
-		}
-	});
-}
-
 export default {};

@@ -2,55 +2,92 @@
 
 # [Worker] 🍩
 
-## Usage: Dynamic CSS Loading via `postMessage`
+This repository contains a Service Worker designed to enhance web application
+performance and reliability through advanced caching, offline support, and a
+unique strategy for handling dynamic CSS imports originating from JavaScript
+modules.
+
+## Core Functionality
+
+- **Asset Caching:** Implements multiple caching strategies:
+    - **Core Cache (`CACHE_CORE`):** Stores essential application shell files
+      and critical scripts (like `/Application/`, `Register.js`, `Load.js`).
+      Uses a **network-first** strategy for navigation requests to ensure users
+      get the latest page structure if online, falling back to the cache when
+      offline. Pre-caches essential assets on install.
+    - **Asset Cache (`CACHE_ASSET`):** Stores static application assets
+      (`/Static/Application/*`), including JavaScript, images, and the actual
+      CSS files. Uses a **cache-first** strategy for fast loading. Also stores
+      the dynamically generated JavaScript modules used for CSS loading (see
+      below).
+    - **Shim Cache (`CACHE_SHIM`):** Designated for shim/polyfill assets.
+- **Offline Support:** Leverages the caches to allow the application shell and
+  cached assets to function offline.
+- **Dynamic CSS Loading:** Intercepts JavaScript `import` statements for
+  specific CSS files and responds with a JavaScript module that triggers the
+  loading of the actual CSS via a standard `<link>` tag.
+- **Automatic Updates:** Detects when a new version of the Service Worker is
+  activated and prompts the client (via `Register.js`) to reload the page,
+  ensuring the user gets the latest application version seamlessly.
+- **Client Control Management:** The `Register.js` script ensures the Service
+  Worker gains control of the page, potentially reloading the page once after
+  the initial registration if necessary.
+
+## Usage: Dynamic CSS Loading via JS Module Response
 
 This worker implements a specific strategy to handle dynamic CSS imports from
-JavaScript modules (e.g., `import './some-styles.css';`) while preserving the
-granular loading pattern often found in large applications. Instead of bundling
-or injecting styles directly at build time, it coordinates between the Service
-Worker and the client application at runtime using `postMessage`.
+JavaScript modules (e.g., `import './some-styles.css';`) located under the
+`/Static/Application/` path. Instead of relying on `postMessage` coordination,
+it directly responds to the initial import request with JavaScript code that
+initiates the standard browser CSS loading mechanism.
 
 **The Workflow:**
 
 1.  **Initial JS Import:** A JavaScript module in your application attempts to
-    import a CSS file (e.g., `/Static/CodeEditorLand/component.css`).
+    import a CSS file located under `/Static/Application/` (e.g.,
+    `/Static/Application/CodeEditorLand/component.css`).
 2.  **Service Worker Intercept #1:** The worker's `fetch` listener intercepts
-    this request. Because the URL doesn't contain the special `?Skip=Intercept`
-    parameter, it proceeds with the CSS handling logic.
-3.  **Notify Client:** The worker calls an internal `Notify` function. This
-    function finds the client window that made the request and sends it a
-    `postMessage` containing the original CSS URL.
-4.  **Service Worker Responds (JS):** Concurrently with sending the message, the
-    worker responds to the _original_ fetch request with a minimal JavaScript
-    module (`export default {};`). This satisfies the expectation of the
-    JavaScript `import` statement.
-5.  **Client Receives Message:** A `message` listener in the client-side
-    JavaScript receives the instruction from the Service Worker.
-6.  **Client Initiates Load:** The message listener calls a globally defined
-    function (`window._LOAD_CSS_WORKER`) with the original CSS
-    URL.
-7.  **Client Modifies URL & Creates `<link>`:** The
-    `_LOAD_CSS_WORKER` function appends the `?Skip=Intercept`
-    query parameter to the received CSS URL. It then creates a standard
-    `<link rel="stylesheet">` tag, setting its `href` to this _modified_ URL,
-    and appends it to the document's `<head>`.
-8.  **Browser Fetches for `<link>`:** The browser sees the new `<link>` tag and
-    initiates a _second_ fetch request for the CSS file, this time using the URL
-    _with_ the `?Skip=Intercept` parameter.
-9.  **Service Worker Intercept #2:** The worker intercepts this second request.
-10. **Service Worker Bypasses & Serves CSS:** The worker detects the
-    `?Skip=Intercept` parameter. It bypasses the notification/JS-injection logic
-    and proceeds to fetch the _actual_ CSS content using a cache-first strategy
+    this request. Because the URL matches the pattern
+    `/Static/Application/*.css` and _doesn't_ contain the special
+    `?Skip=Intercept` parameter, it proceeds with the CSS handling logic.
+3.  **Service Worker Responds with JS:** The worker _immediately_ responds to
+    the fetch request with a dynamically generated JavaScript module
+    (`Content-Type: application/javascript; charset=utf-8`). The content of this
+    module is similar to:
+    ```javascript
+    window._LOAD_CSS_WORKER("/Static/Application/CodeEditorLand/component.css");
+    export default {};
+    ```
+    This JavaScript response is then cached in `CACHE_ASSET` using the original
+    CSS request URL as the key.
+4.  **Browser Executes JS:** The browser receives and executes this JavaScript
+    module. The `export default {};` satisfies the expectation of the original
+    `import` statement.
+5.  **Client Function Call:** The executed JavaScript calls the globally
+    available `window._LOAD_CSS_WORKER` function (which must be defined
+    beforehand by including `Load.js`).
+6.  **Client Modifies URL & Creates `<link>`:** The `_LOAD_CSS_WORKER` function
+    appends the `?Skip=Intercept` query parameter to the received CSS URL (e.g.,
+    `/Static/Application/CodeEditorLand/component.css?Skip=Intercept`). It then
+    creates a standard `<link rel="stylesheet">` tag, setting its `href` to this
+    _modified_ URL, and appends it to the document's `<head>`.
+7.  **Browser Fetches CSS:** The browser sees the new `<link>` tag and initiates
+    a _second_ fetch request for the CSS file, this time using the URL _with_
+    the `?Skip=Intercept` parameter.
+8.  **Service Worker Intercept #2:** The worker intercepts this second request.
+9.  **Service Worker Serves CSS:** The worker detects the `?Skip=Intercept`
+    parameter. It bypasses the JS generation logic and proceeds to fetch the
+    _actual_ CSS content using a **cache-first** strategy against `CACHE_ASSET`
     (looking for the URL _including_ the parameter in the cache, or fetching
     from the network). It responds with the real CSS content
     (`Content-Type: text/css`).
-11. **Browser Applies Styles:** The browser receives the actual CSS and applies
+10. **Browser Applies Styles:** The browser receives the actual CSS and applies
     the styles as expected.
 
-This two-step process, coordinated via `postMessage` and distinguished by the
-`Skip=Intercept` parameter, allows the initial JavaScript import to resolve quickly
-while triggering the standard browser mechanism for loading the actual CSS
-styles without causing an infinite loop in the Service Worker.
+This two-step fetch process, initiated by the SW's JavaScript response and
+distinguished by the `Skip=Intercept` parameter, allows the initial JavaScript
+import to resolve quickly while triggering the standard browser mechanism for
+loading the actual CSS styles without causing infinite interception loops.
 
 ### Example Implementation
 
@@ -71,9 +108,9 @@ Service Worker registration within an HTML page (`.html` file).
 		<link href="/favicon.ico" rel="icon" />
 
 		<!--
-            IMPORTANT: Load the CSS Loader script early.
+            IMPORTANT: Load the CSS Loader script EARLY.
             This script defines the global function window._LOAD_CSS_WORKER
-            and sets up the listener for messages from the Service Worker.
+            needed by the Service Worker's JS response.
             It needs to run before your main app script tries to import CSS.
         -->
 		<script src="/Worker/CSS/Load.js" type="module"></script>
@@ -81,15 +118,18 @@ Service Worker registration within an HTML page (`.html` file).
 		<!--
             Define the path to the Service Worker file so Register.js can find it.
             This script block should come *before* Register.js.
+            Ensure this path correctly points to where your Worker.js is served.
         -->
 		<script>
 			// Set the path relative to the web root where Worker.js will be served.
-			window._WORKER = "/Worker.js";
+			window.URLWorker = "/Worker.js"; // Default is "/Worker.js"
 		</script>
 
 		<!--
             Register the Service Worker.
-            This script uses the window._WORKER path defined above.
+            This script handles registration, listens for updates from the SW
+            (triggering reloads), and manages ensuring the SW controls the page.
+            It uses the window.URLWorker path defined above and registers with scope '/Application'.
         -->
 		<script src="/Worker/Register.js" type="module"></script>
 
@@ -115,8 +155,9 @@ Service Worker registration within an HTML page (`.html` file).
 
 		<!--
             Load your main application script LAST.
-            Any dynamic import './some-component.css' inside this script
-            or its dependencies will trigger the Service Worker interception.
+            Any dynamic import '/Static/Application/some-component.css'
+            inside this script or its dependencies will trigger the
+            Service Worker interception and JS module response described above.
         -->
 		<script src="/scripts/main-app.js" type="module"></script>
 	</body>
