@@ -33,7 +33,7 @@ export default {
                         onStart(async () => {
                             try {
                                 outdir
-                                    ? await (await import("node:fs/promises")).rm("Target", {
+                                    ? await (await import("node:fs/promises")).rm(outdir, {
                                         recursive: true,
                                     })
                                     : {};

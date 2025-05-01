@@ -40,7 +40,7 @@ export default {
 								outdir
 									? await (
 											await import("node:fs/promises")
-										).rm("Target", {
+										).rm(outdir, {
 											recursive: true,
 										})
 									: {};
