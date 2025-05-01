@@ -11,6 +11,7 @@ const CACHE_ASSET = `Asset-${VERSION}`;
 const CACHE = [CACHE_CORE, CACHE_SHIM, CACHE_ASSET];
 
 const CORE_PRECACHE = [
+	"/Application/",
 	"/Worker/Register.js",
 	"/Worker/CSS/Load.js",
 	"/Worker/CSS/Notify.js",
