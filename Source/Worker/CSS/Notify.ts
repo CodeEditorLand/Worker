@@ -1,25 +1,35 @@
 declare var self: ServiceWorkerGlobalScope;
 
-const Log = (..._Message: any[]) => {
-	console.log(`[Notify CSS]`, ..._Message);
-};
+declare const __DEV__: boolean;
 
-const ErrorLog = (..._Message: any[]) => {
-	console.error(`[Notify CSS]`, ..._Message);
-};
+const Log = __DEV__
+	? (..._Message: any[]) => {
+			console.log(`[Notify CSS]`, ..._Message);
+		}
+	: () => {};
 
-const WarnLog = (..._Message: any[]) => {
-	console.warn(`[Notify CSS]`, ..._Message);
-};
+const ErrorLog = __DEV__
+	? (..._Message: any[]) => {
+			console.error(`[Notify CSS]`, ..._Message);
+		}
+	: () => {};
+
+const WarnLog = __DEV__
+	? (..._Message: any[]) => {
+			console.warn(`[Notify CSS]`, ..._Message);
+		}
+	: () => {};
 
 export default async (
 	Client: string | null | undefined,
 	URL: string,
 ): Promise<void> => {
 	if (!Client) {
-		WarnLog(
-			`No Client available for CSS request ${URL}. Cannot send postMessage.`,
-		);
+		__DEV__
+			? WarnLog(
+					`No Client available for CSS request ${URL}. Cannot send postMessage.`,
+				)
+			: {};
 
 		return;
 	}
@@ -28,20 +38,28 @@ export default async (
 		const Identifier = await self.clients.get(Client);
 
 		if (Identifier) {
-			Log(`Sending Load instruction to Client ${Identifier} for ${URL}`);
+			__DEV__
+				? Log(
+						`Sending Load instruction to Client ${Identifier} for ${URL}`,
+					)
+				: {};
 
 			Identifier.postMessage({
 				_LOAD_CSS_WORKER: URL,
 			});
 		} else {
-			WarnLog(
-				`Client ${Identifier} not found for postMessage regarding ${URL}.`,
-			);
+			__DEV__
+				? WarnLog(
+						`Client ${Identifier} not found for postMessage regarding ${URL}.`,
+					)
+				: {};
 		}
 	} catch (error) {
-		ErrorLog(
-			`Error sending postMessage to Client ${Client} for ${URL}:`,
-			error,
-		);
+		__DEV__
+			? ErrorLog(
+					`Error sending postMessage to Client ${Client} for ${URL}:`,
+					error,
+				)
+			: {};
 	}
 };

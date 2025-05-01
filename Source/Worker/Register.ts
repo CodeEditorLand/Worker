@@ -4,6 +4,8 @@ declare global {
 	}
 }
 
+declare const __DEV__: boolean;
+
 const Path =
 	typeof window.URLWorker === "string" ? window.URLWorker : "/Worker.js";
 
@@ -11,66 +13,82 @@ const Scope = "/Application";
 
 const Reload = "WorkerReload";
 
-export const Log = (..._Message: any[]) => {
-	console.log(`[Register]`, ..._Message);
-};
+export const Log = __DEV__
+	? (..._Message: any[]) => {
+			console.log(`[Register]`, ..._Message);
+		}
+	: () => {};
 
-export const ErrorLog = (..._Message: any[]) => {
-	console.error(`[Register]`, ..._Message);
-};
+export const ErrorLog = __DEV__
+	? (..._Message: any[]) => {
+			console.error(`[Register]`, ..._Message);
+		}
+	: () => {};
 
-export const WarnLog = (..._Message: any[]) => {
-	console.warn(`[Register]`, ..._Message);
-};
+export const WarnLog = __DEV__
+	? (..._Message: any[]) => {
+			console.warn(`[Register]`, ..._Message);
+		}
+	: () => {};
 
 export const Check = async () => {
 	if ("serviceWorker" in navigator) {
 		try {
-			Log("Checking for service worker updates...");
+			__DEV__ ? Log("Checking for service worker updates...") : {};
 
 			const Registration = await navigator.serviceWorker.ready;
 
 			if (Registration.active) {
 				await Registration.update();
 
-				Log("Service worker update check finished.");
+				__DEV__ ? Log("Service worker update check finished.") : {};
 			} else {
-				Log("No active service worker found to update.");
+				__DEV__ ? Log("No active service worker found to update.") : {};
 			}
 		} catch (_Error) {
-			ErrorLog("Error checking for service worker updates:", _Error);
+			__DEV__
+				? ErrorLog("Error checking for service worker updates:", _Error)
+				: {};
 		}
 	} else {
-		WarnLog("Service Worker not supported, cannot check for updates.");
+		__DEV__
+			? WarnLog("Service Worker not supported, cannot check for updates.")
+			: {};
 	}
 };
 
 if ("serviceWorker" in navigator) {
 	navigator.serviceWorker.addEventListener("controllerchange", () => {
-		Log("Controller changed event fired!");
+		__DEV__ ? Log("Controller changed event fired!") : {};
 
 		if (sessionStorage.getItem(Reload) === "true") {
-			Log(
-				"Reload flag is set, reloading page now to ensure SW control...",
-			);
+			__DEV__
+				? Log(
+						"Reload flag is set, reloading page now to ensure SW control...",
+					)
+				: {};
 
 			sessionStorage.removeItem(Reload);
 
 			window.location.reload();
 		} else {
-			Log(
-				"Controller changed, but no reload needed (flag not set or page likely already controlled).",
-			);
+			__DEV__
+				? Log(
+						"Controller changed, but no reload needed (flag not set or page likely already controlled).",
+					)
+				: {};
 		}
 	});
 
 	navigator.serviceWorker.addEventListener("message", (Event) => {
-		Log("[Client] Received message from SW:", Event.data);
+		__DEV__ ? Log("[Client] Received message from SW:", Event.data) : {};
 
 		if (Event.data && Event.data.Version === "New") {
-			WarnLog(
-				"A new version of the application is available! Reloading page...",
-			);
+			__DEV__
+				? WarnLog(
+						"A new version of the application is available! Reloading page...",
+					)
+				: {};
 
 			// Optional: Add confirm dialog if needed
 			// if (confirm("A new version is available. Reload now?")) {
@@ -84,47 +102,63 @@ if ("serviceWorker" in navigator) {
 	const Control = async () => {
 		const InitiallyControlled = !!navigator.serviceWorker.controller;
 
-		Log(`Page controlled on script start: ${InitiallyControlled}`);
+		__DEV__
+			? Log(`Page controlled on script start: ${InitiallyControlled}`)
+			: {};
 
 		try {
-			Log(
-				`Attempting to register Service Worker: ${Path} with scope: ${Scope}`,
-			);
+			__DEV__
+				? Log(
+						`Attempting to register Service Worker: ${Path} with scope: ${Scope}`,
+					)
+				: {};
 
 			const registration = await navigator.serviceWorker.register(Path, {
 				scope: Scope,
 				type: "module",
 			});
 
-			Log("Service Worker registration call finished.");
+			__DEV__ ? Log("Service Worker registration call finished.") : {};
 
-			Log("Registered Scope:", registration.scope);
+			__DEV__ ? Log("Registered Scope:", registration.scope) : {};
 
 			if (registration.installing) {
-				Log("Service Worker installing.");
+				__DEV__ ? Log("Service Worker installing.") : {};
 			} else if (registration.waiting) {
-				Log("Service Worker waiting to activate.");
+				__DEV__ ? Log("Service Worker waiting to activate.") : {};
 			} else if (registration.active) {
-				Log("Service Worker active upon registration check.");
+				__DEV__
+					? Log("Service Worker active upon registration check.")
+					: {};
 			} else {
-				Log("Service Worker state unknown after registration call.");
+				__DEV__
+					? Log(
+							"Service Worker state unknown after registration call.",
+						)
+					: {};
 			}
 
-			Log("Waiting for navigator.serviceWorker.ready...");
+			__DEV__ ? Log("Waiting for navigator.serviceWorker.ready...") : {};
 
 			await navigator.serviceWorker.ready;
 
-			Log("navigator.serviceWorker.ready resolved.");
+			__DEV__ ? Log("navigator.serviceWorker.ready resolved.") : {};
 
 			const Controlled = !!navigator.serviceWorker.controller;
 
-			Log(`Page controlled after registration + ready: ${Controlled}`);
+			__DEV__
+				? Log(
+						`Page controlled after registration + ready: ${Controlled}`,
+					)
+				: {};
 
 			if (!InitiallyControlled && !Controlled) {
 				if (!sessionStorage.getItem(Reload)) {
-					Log(
-						"Page needs control and is not controlled after ready. Setting flag and RELOADING.",
-					);
+					__DEV__
+						? Log(
+								"Page needs control and is not controlled after ready. Setting flag and RELOADING.",
+							)
+						: {};
 
 					sessionStorage.setItem(Reload, "true");
 
@@ -132,46 +166,61 @@ if ("serviceWorker" in navigator) {
 
 					return;
 				} else {
-					WarnLog(
-						"Reload flag was set, but page is still not controlled. SW activation might have failed. Removing flag to prevent loops.",
-					);
+					__DEV__
+						? WarnLog(
+								"Reload flag was set, but page is still not controlled. SW activation might have failed. Removing flag to prevent loops.",
+							)
+						: {};
 
 					sessionStorage.removeItem(Reload);
 				}
 			} else {
 				if (sessionStorage.getItem(Reload)) {
-					Log(
-						`Page is now controlled or was already controlled. Clearing unnecessary reload flag.`,
-					);
+					__DEV__
+						? Log(
+								`Page is now controlled or was already controlled. Clearing unnecessary reload flag.`,
+							)
+						: {};
 
 					sessionStorage.removeItem(Reload);
 				}
 				if (Controlled) {
-					Log("Service Worker is actively controlling this page.");
+					__DEV__
+						? Log(
+								"Service Worker is actively controlling this page.",
+							)
+						: {};
 				} else if (InitiallyControlled) {
-					Log(
-						"Service Worker was already controlling this page initially.",
-					);
+					__DEV__
+						? Log(
+								"Service Worker was already controlling this page initially.",
+							)
+						: {};
 				}
 			}
 		} catch (_Error) {
-			ErrorLog("Service Worker registration or ready failed:", _Error);
+			__DEV__
+				? ErrorLog(
+						"Service Worker registration or ready failed:",
+						_Error,
+					)
+				: {};
 
 			sessionStorage.removeItem(Reload);
 		}
 	};
 
 	if (document.readyState === "loading") {
-		Log("DOM not ready, deferring SW registration.");
+		__DEV__ ? Log("DOM not ready, deferring SW registration.") : {};
 
 		document.addEventListener("DOMContentLoaded", Control);
 	} else {
-		Log("DOM ready, running SW registration now.");
+		__DEV__ ? Log("DOM ready, running SW registration now.") : {};
 
 		Control();
 	}
 } else {
-	WarnLog("Service Worker API not supported in this browser.");
+	__DEV__ ? WarnLog("Service Worker API not supported in this browser.") : {};
 }
 
 export default {};
