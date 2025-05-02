@@ -17,14 +17,16 @@ export default async (Current: BuildOptions): Promise<BuildOptions> =>
 
 			define: {
 				"__DEV__": On ? "true" : "false",
+
+				"__INCREMENT__": `"${`${On ? "DEVELOPMENT" : "PRODUCTION"}-${(await import("ulid")).ulid()}`}"`,
 			},
 
 			treeShaking: true,
 
-			entryPoints: (await import("./Exclude/Entry.js")).default(
-				Current,
+			entryPoints: (await import("./Exclude/Entry.js")).default(Current, [
+				"Source/Configuration/*",
+			]),
 
-				["Source/Configuration/*"],
-			),
+			platform: "browser",
 		},
 	);

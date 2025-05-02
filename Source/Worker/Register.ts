@@ -1,10 +1,23 @@
+import type { WorkerApplication } from "@Source/Worker/Policy.js";
+import type { TrustedTypePolicyFactory } from "trusted-types";
+
 declare global {
 	interface Window {
 		URLWorker: string;
+
+		trustedTypes?: TrustedTypePolicyFactory;
+
+		_POLICY_WORKER?: {
+			WorkerApplication?: WorkerApplication;
+		};
 	}
 }
 
 declare const __DEV__: boolean;
+
+declare const __INCREMENT__: string;
+
+const VERSION = __INCREMENT__ ?? "Initial";
 
 const Path =
 	typeof window.URLWorker === "string" ? window.URLWorker : "/Worker.js";
@@ -13,87 +26,44 @@ const Scope = "/Application";
 
 const Reload = "WorkerReload";
 
-export const Log = __DEV__
+const Log = __DEV__
 	? (..._Message: any[]) => {
-			console.log(`[Register]`, ..._Message);
+			console.log(`[Register ${VERSION}]`, ..._Message);
 		}
 	: () => {};
 
-export const ErrorLog = __DEV__
+const ErrorLog = __DEV__
 	? (..._Message: any[]) => {
-			console.error(`[Register]`, ..._Message);
+			console.error(`[Register ${VERSION}]`, ..._Message);
 		}
 	: () => {};
 
-export const WarnLog = __DEV__
+const WarnLog = __DEV__
 	? (..._Message: any[]) => {
-			console.warn(`[Register]`, ..._Message);
+			console.warn(`[Register ${VERSION}]`, ..._Message);
 		}
 	: () => {};
-
-export const Check = async () => {
-	if ("serviceWorker" in navigator) {
-		try {
-			__DEV__ ? Log("Checking for service worker updates...") : {};
-
-			const Registration = await navigator.serviceWorker.ready;
-
-			if (Registration.active) {
-				await Registration.update();
-
-				__DEV__ ? Log("Service worker update check finished.") : {};
-			} else {
-				__DEV__ ? Log("No active service worker found to update.") : {};
-			}
-		} catch (_Error) {
-			__DEV__
-				? ErrorLog("Error checking for service worker updates:", _Error)
-				: {};
-		}
-	} else {
-		__DEV__
-			? WarnLog("Service Worker not supported, cannot check for updates.")
-			: {};
-	}
-};
 
 if ("serviceWorker" in navigator) {
 	navigator.serviceWorker.addEventListener("controllerchange", () => {
-		__DEV__ ? Log("Controller changed event fired!") : {};
+		__DEV__ && Log("Controller changed event fired!");
 
 		if (sessionStorage.getItem(Reload) === "true") {
-			__DEV__
-				? Log(
-						"Reload flag is set, reloading page now to ensure SW control...",
-					)
-				: {};
+			__DEV__ && Log("Reload flag is set, reloading page now...");
 
 			sessionStorage.removeItem(Reload);
 
 			window.location.reload();
 		} else {
-			__DEV__
-				? Log(
-						"Controller changed, but no reload needed (flag not set or page likely already controlled).",
-					)
-				: {};
+			__DEV__ && Log("Controller changed, but no reload needed.");
 		}
 	});
 
 	navigator.serviceWorker.addEventListener("message", (Event) => {
-		__DEV__ ? Log("[Client] Received message from SW:", Event.data) : {};
+		__DEV__ && Log("[Client] Received message from SW:", Event.data);
 
-		if (Event.data && Event.data.Version === "New") {
-			__DEV__
-				? WarnLog(
-						"A new version of the application is available! Reloading page...",
-					)
-				: {};
-
-			// Optional: Add confirm dialog if needed
-			// if (confirm("A new version is available. Reload now?")) {
-			//     window.location.reload();
-			// }
+		if (Event.data?.Version === "New") {
+			__DEV__ && WarnLog("New version available! Reloading page...");
 
 			window.location.reload();
 		}
@@ -102,63 +72,100 @@ if ("serviceWorker" in navigator) {
 	const Control = async () => {
 		const InitiallyControlled = !!navigator.serviceWorker.controller;
 
-		__DEV__
-			? Log(`Page controlled on script start: ${InitiallyControlled}`)
-			: {};
+		__DEV__ &&
+			Log(`Page controlled on script start: ${InitiallyControlled}`);
 
 		try {
-			__DEV__
-				? Log(
-						`Attempting to register Service Worker: ${Path} with scope: ${Scope}`,
-					)
-				: {};
+			__DEV__ &&
+				Log(
+					`Attempting to register Service Worker: ${Path} with scope: ${Scope}`,
+				);
 
-			const registration = await navigator.serviceWorker.register(Path, {
-				scope: Scope,
-				type: "module",
-			});
+			let URL: string | TrustedScriptURL;
 
-			__DEV__ ? Log("Service Worker registration call finished.") : {};
+			if (window.trustedTypes) {
+				__DEV__ &&
+					Log("TrustedTypes available. Attempting to use policy...");
 
-			__DEV__ ? Log("Registered Scope:", registration.scope) : {};
+				try {
+					const Policy = window._POLICY_WORKER?.WorkerApplication;
 
-			if (registration.installing) {
-				__DEV__ ? Log("Service Worker installing.") : {};
-			} else if (registration.waiting) {
-				__DEV__ ? Log("Service Worker waiting to activate.") : {};
-			} else if (registration.active) {
-				__DEV__
-					? Log("Service Worker active upon registration check.")
-					: {};
+					__DEV__ && Log("Retrieved Policy:", Policy);
+
+					if (!Policy) {
+						ErrorLog(
+							"Policy 'WorkerApplication' object NOT found in global namespace!",
+						);
+
+						throw new Error(
+							"Required Trusted Types policy 'WorkerApplication' not found. Ensure Policy.js executes first and succeeds.",
+						);
+					}
+
+					URL = Policy.createScriptURL(Path);
+
+					__DEV__ &&
+						Log(
+							`Used existing policy 'WorkerApplication' to create TrustedScriptURL for: ${Path}`,
+						);
+				} catch (_Error) {
+					__DEV__ &&
+						ErrorLog(
+							"Error using pre-existing 'WorkerApplication' policy or creating TrustedScriptURL:",
+							_Error,
+						);
+
+					throw _Error;
+				}
 			} else {
-				__DEV__
-					? Log(
-							"Service Worker state unknown after registration call.",
-						)
-					: {};
+				__DEV__ &&
+					WarnLog(
+						"Trusted Types not available/enforced. Using plain string for SW path (potentially unsafe).",
+					);
+
+				URL = Path;
 			}
 
-			__DEV__ ? Log("Waiting for navigator.serviceWorker.ready...") : {};
+			const Registration = await navigator.serviceWorker.register(
+				URL as unknown as URL,
+				{
+					scope: Scope,
+					type: "module",
+				},
+			);
+
+			__DEV__ &&
+				Log("Service Worker registration call finished successfully.");
+
+			__DEV__ && Log("Registered Scope:", Registration.scope);
+
+			if (Registration.installing)
+				__DEV__ && Log("Service Worker installing.");
+			else if (Registration.waiting)
+				__DEV__ && Log("Service Worker waiting.");
+			else if (Registration.active)
+				__DEV__ && Log("Service Worker active.");
+			else
+				__DEV__ &&
+					Log("Service Worker state unknown after registration.");
+
+			__DEV__ && Log("Waiting for navigator.serviceWorker.ready...");
 
 			await navigator.serviceWorker.ready;
 
-			__DEV__ ? Log("navigator.serviceWorker.ready resolved.") : {};
+			__DEV__ && Log("navigator.serviceWorker.ready resolved.");
 
 			const Controlled = !!navigator.serviceWorker.controller;
 
-			__DEV__
-				? Log(
-						`Page controlled after registration + ready: ${Controlled}`,
-					)
-				: {};
+			__DEV__ &&
+				Log(
+					`Page controlled after registration + ready: ${Controlled}`,
+				);
 
 			if (!InitiallyControlled && !Controlled) {
 				if (!sessionStorage.getItem(Reload)) {
-					__DEV__
-						? Log(
-								"Page needs control and is not controlled after ready. Setting flag and RELOADING.",
-							)
-						: {};
+					__DEV__ &&
+						Log("Page needs control. Setting flag and RELOADING.");
 
 					sessionStorage.setItem(Reload, "true");
 
@@ -166,61 +173,58 @@ if ("serviceWorker" in navigator) {
 
 					return;
 				} else {
-					__DEV__
-						? WarnLog(
-								"Reload flag was set, but page is still not controlled. SW activation might have failed. Removing flag to prevent loops.",
-							)
-						: {};
+					__DEV__ &&
+						WarnLog(
+							"Reload flag set, but still not controlled. Removing flag.",
+						);
 
 					sessionStorage.removeItem(Reload);
 				}
 			} else {
 				if (sessionStorage.getItem(Reload)) {
-					__DEV__
-						? Log(
-								`Page is now controlled or was already controlled. Clearing unnecessary reload flag.`,
-							)
-						: {};
+					__DEV__ && Log(`Page controlled. Clearing reload flag.`);
 
 					sessionStorage.removeItem(Reload);
 				}
-				if (Controlled) {
-					__DEV__
-						? Log(
-								"Service Worker is actively controlling this page.",
-							)
-						: {};
-				} else if (InitiallyControlled) {
-					__DEV__
-						? Log(
-								"Service Worker was already controlling this page initially.",
-							)
-						: {};
-				}
+
+				if (Controlled)
+					__DEV__ && Log("Service Worker actively controlling.");
+				else if (InitiallyControlled)
+					__DEV__ && Log("Service Worker was already controlling.");
 			}
 		} catch (_Error) {
-			__DEV__
-				? ErrorLog(
-						"Service Worker registration or ready failed:",
-						_Error,
-					)
-				: {};
+			__DEV__ &&
+				ErrorLog(
+					"Service Worker registration or ready failed:",
+					_Error,
+				);
+
+			if (
+				_Error instanceof TypeError &&
+				(_Error.message.includes("TrustedScriptURL") ||
+					_Error.message.includes("Trusted Type"))
+			) {
+				__DEV__ &&
+					ErrorLog(
+						"This failure might be due to a Trusted Types policy violation. Check policy definitions and CSP.",
+					);
+			}
 
 			sessionStorage.removeItem(Reload);
 		}
 	};
 
 	if (document.readyState === "loading") {
-		__DEV__ ? Log("DOM not ready, deferring SW registration.") : {};
+		__DEV__ && Log("DOM not ready, deferring SW registration.");
 
 		document.addEventListener("DOMContentLoaded", Control);
 	} else {
-		__DEV__ ? Log("DOM ready, running SW registration now.") : {};
+		__DEV__ && Log("DOM ready, running SW registration now.");
 
 		Control();
 	}
 } else {
-	__DEV__ ? WarnLog("Service Worker API not supported in this browser.") : {};
+	__DEV__ && WarnLog("Service Worker API not supported.");
 }
 
 export default {};
