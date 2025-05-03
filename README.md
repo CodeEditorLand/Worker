@@ -122,14 +122,14 @@ Service Worker registration within an HTML page (`.html` file).
         -->
 		<script>
 			// Set the path relative to the web root where Worker.js will be served.
-			window.URLWorker = "/Worker.js"; // Default is "/Worker.js"
+			window._WORKER = "/Worker.js"; // Default is "/Worker.js"
 		</script>
 
 		<!--
             Register the Service Worker.
             This script handles registration, listens for updates from the SW
             (triggering reloads), and manages ensuring the SW controls the page.
-            It uses the window.URLWorker path defined above and registers with scope '/Application'.
+            It uses the window._WORKER path defined above and registers with scope '/Application'.
         -->
 		<script src="/Worker/Register.js" type="module"></script>
 

@@ -3,7 +3,7 @@ import type { TrustedTypePolicyFactory } from "trusted-types";
 
 declare global {
 	interface Window {
-		URLWorker: string;
+		_WORKER: string;
 
 		trustedTypes?: TrustedTypePolicyFactory;
 
@@ -17,10 +17,9 @@ declare const __DEV__: boolean;
 
 declare const __INCREMENT__: string;
 
-const VERSION = __INCREMENT__ ?? "Initial";
+const INCREMENT = __INCREMENT__ ?? "Initial";
 
-const Path =
-	typeof window.URLWorker === "string" ? window.URLWorker : "/Worker.js";
+const Path = typeof window._WORKER === "string" ? window._WORKER : "/Worker.js";
 
 const Scope = "/Application";
 
@@ -28,19 +27,19 @@ const Reload = "WorkerReload";
 
 const Log = __DEV__
 	? (..._Message: any[]) => {
-			console.log(`[Register ${VERSION}]`, ..._Message);
+			console.log(`[Register ${INCREMENT}]`, ..._Message);
 		}
 	: () => {};
 
 const ErrorLog = __DEV__
 	? (..._Message: any[]) => {
-			console.error(`[Register ${VERSION}]`, ..._Message);
+			console.error(`[Register ${INCREMENT}]`, ..._Message);
 		}
 	: () => {};
 
 const WarnLog = __DEV__
 	? (..._Message: any[]) => {
-			console.warn(`[Register ${VERSION}]`, ..._Message);
+			console.warn(`[Register ${INCREMENT}]`, ..._Message);
 		}
 	: () => {};
 

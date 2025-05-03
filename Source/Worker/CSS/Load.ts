@@ -6,19 +6,19 @@ declare global {
 
 declare const __DEV__: boolean;
 
-declare const __VERSION__: string;
+declare const __INCREMENT__: string;
 
-const VERSION = __VERSION__ ?? "Initial";
+const INCREMENT = __INCREMENT__ ?? "Initial";
 
 const Log = __DEV__
 	? (..._Message: any[]) => {
-			console.log(`[Load CSS ${VERSION}]`, ..._Message);
+			console.log(`[Load CSS ${INCREMENT}]`, ..._Message);
 		}
 	: () => {};
 
 const ErrorLog = __DEV__
 	? (..._Message: any[]) => {
-			console.error(`[Load CSS ${VERSION}]`, ..._Message);
+			console.error(`[Load CSS ${INCREMENT}]`, ..._Message);
 		}
 	: () => {};
 

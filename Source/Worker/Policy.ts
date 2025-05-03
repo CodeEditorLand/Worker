@@ -21,23 +21,23 @@ declare const __DEV__: boolean;
 
 declare const __INCREMENT__: string;
 
-const VERSION = __INCREMENT__ ?? "Initial";
+const INCREMENT = __INCREMENT__ ?? "Initial";
 
 const Log = __DEV__
 	? (..._Message: any[]) => {
-			console.log(`[Policy ${VERSION}]`, ..._Message);
+			console.log(`[Policy ${INCREMENT}]`, ..._Message);
 		}
 	: () => {};
 
 const ErrorLog = __DEV__
 	? (..._Message: any[]) => {
-			console.error(`[Policy ${VERSION}]`, ..._Message);
+			console.error(`[Policy ${INCREMENT}]`, ..._Message);
 		}
 	: () => {};
 
 const WarnLog = __DEV__
 	? (..._Message: any[]) => {
-			console.warn(`[Policy ${VERSION}]`, ..._Message);
+			console.warn(`[Policy ${INCREMENT}]`, ..._Message);
 		}
 	: () => {};
 

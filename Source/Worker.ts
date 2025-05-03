@@ -4,13 +4,13 @@ declare const __DEV__: boolean;
 
 declare const __INCREMENT__: string;
 
-const VERSION = __INCREMENT__ ?? "Initial";
+const INCREMENT = __INCREMENT__ ?? "Initial";
 
-const CACHE_CORE = `Core-${VERSION}`;
+const CACHE_CORE = `Core-${INCREMENT}`;
 
-const CACHE_SHIM = `Shim-${VERSION}`;
+const CACHE_SHIM = `Shim-${INCREMENT}`;
 
-const CACHE_ASSET = `Asset-${VERSION}`;
+const CACHE_ASSET = `Asset-${INCREMENT}`;
 
 const CACHE = [CACHE_CORE, CACHE_SHIM, CACHE_ASSET];
 
@@ -29,7 +29,7 @@ const BASE_REMOTE =
 const Log = __DEV__
 	? (..._Message: any[]) => {
 			console.log(
-				`[Worker ${VERSION}]`,
+				`[Worker ${INCREMENT}]`,
 				`(Remote: ${BASE_REMOTE})`,
 				..._Message,
 			);
@@ -39,7 +39,7 @@ const Log = __DEV__
 const ErrorLog = __DEV__
 	? (..._Message: any[]) => {
 			console.error(
-				`[Worker ${VERSION}]`,
+				`[Worker ${INCREMENT}]`,
 				`(Remote: ${BASE_REMOTE})`,
 				..._Message,
 			);
@@ -49,7 +49,7 @@ const ErrorLog = __DEV__
 const WarnLog = __DEV__
 	? (..._Message: any[]) => {
 			console.warn(
-				`[Worker ${VERSION}]`,
+				`[Worker ${INCREMENT}]`,
 				`(Remote: ${BASE_REMOTE})`,
 				..._Message,
 			);
@@ -57,7 +57,7 @@ const WarnLog = __DEV__
 	: () => {};
 
 self.addEventListener("install", (Event) => {
-	__DEV__ && Log(`Installing version ${VERSION}...`);
+	__DEV__ && Log(`Installing version ${INCREMENT}...`);
 
 	Event.waitUntil(
 		Promise.all([
@@ -81,46 +81,67 @@ self.addEventListener("install", (Event) => {
 });
 
 self.addEventListener("activate", (Event) => {
-	__DEV__ && Log(`Activating version ${VERSION}...`);
+	__DEV__ && Log(`Activating version ${INCREMENT}...`);
 
 	Event.waitUntil(
 		Promise.all([
-			caches.keys().then((Cache) =>
-				Promise.all(
-					Cache.map((Cache) => {
-						if (!CACHE.includes(Cache)) {
-							__DEV__ && Log(`Deleting old cache: ${Cache}`);
+			caches
+				.keys()
+				.then((Cache) =>
+					Promise.all(
+						Cache.map((Cache) => {
+							if (!CACHE.includes(Cache)) {
+								__DEV__ && Log(`Deleting old cache: ${Cache}`);
 
-							return caches.delete(Cache);
-						}
+								return caches.delete(Cache);
+							}
+							return Promise.resolve();
+						}),
+					),
+				)
+				.catch((err) => {
+					__DEV__ &&
+						ErrorLog(
+							"Cache cleanup failed during activation:",
+							err,
+						);
 
-						return Promise.resolve();
-					}),
-				),
-			),
-			self.clients.claim(),
+					return Promise.resolve();
+				}),
+
+			self.clients
+				.claim()
+				.then(() => {
+					__DEV__ && Log("Clients claimed successfully.");
+				})
+				.catch((err) => {
+					__DEV__ && ErrorLog("self.clients.claim() failed:", err);
+
+					return Promise.resolve();
+				}),
 		])
-			.then(() => {
+			.then(async () => {
 				__DEV__ &&
 					Log(
-						`Version ${VERSION} activated and controlling clients.`,
+						`Version ${INCREMENT} activated and controlling clients.`,
 					);
 
-				return self.clients
-					.matchAll({ type: "window" })
-					.then((Client) =>
-						Client.forEach((Client) => {
-							__DEV__ &&
-								Log(
-									`Sending New Version message to client ${Client.id}`,
-								);
+				return (
+					await self.clients.matchAll({
+						type: "window",
+					})
+				).forEach((Client) => {
+					__DEV__ &&
+						Log(
+							`Sending New Version message to client ${Client.id}`,
+						);
 
-							Client.postMessage({ Version: "New" });
-						}),
-					);
+					Client.postMessage({ Version: "New" });
+				});
 			})
 			.catch(
-				(_Error) => __DEV__ && ErrorLog(`Activation failed:`, _Error),
+				(_Error) =>
+					__DEV__ && ErrorLog(`Activation failed overall:`, _Error),
 			),
 	);
 });
