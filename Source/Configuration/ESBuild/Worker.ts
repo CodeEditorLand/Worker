@@ -57,6 +57,7 @@ export default {
 			},
 		},
 	],
+	outbase: "Source/Configuration",
 } satisfies BuildOptions as BuildOptions;
 
 export const { sep, posix } = await import("node:path");

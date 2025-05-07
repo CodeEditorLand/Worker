@@ -23,10 +23,12 @@ export default async (Current: BuildOptions): Promise<BuildOptions> =>
 
 			treeShaking: true,
 
-			entryPoints: (await import("./Exclude/Entry.js")).default(Current, [
-				"Source/Configuration/*",
-			]),
+			entryPoints: (
+				await import("@playform/build/Target/Function/Entry.js")
+			).default(Current, ["Source/Configuration/*"]),
 
 			platform: "browser",
+
+			outbase: "Source",
 		},
 	);

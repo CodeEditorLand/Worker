@@ -49,5 +49,6 @@ export default {
             },
         },
     ],
+    outbase: "Source/Configuration",
 };
 export const { sep, posix } = await import("node:path");
