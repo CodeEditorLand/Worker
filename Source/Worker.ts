@@ -15,11 +15,11 @@ const CACHE_ASSET = `Asset-${INCREMENT}`;
 const CACHE = [CACHE_CORE, CACHE_SHIM, CACHE_ASSET];
 
 const CORE_PRECACHE = [
-	"/Application/",
+	"/Application",
 	"/Worker/Policy.js",
 	"/Worker/Register.js",
 	"/Worker/CSS/Load.js",
-	"/Static/Shim/Variable.js",
+	"/Static/Shim/Empty.js",
 ];
 
 const BASE_REMOTE =
