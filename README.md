@@ -164,7 +164,7 @@ Service Worker registration within an HTML page (`.html` file).
 </html>
 ```
 
-[Worker]: HTTPS://NPMJS.Org/@codeeditorland/worker
+[Worker]: https://NPMJS.Org/@codeeditorland/worker
 
 ## Changelog
 
