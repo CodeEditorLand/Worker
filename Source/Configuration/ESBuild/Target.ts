@@ -16,9 +16,9 @@ export default async (Current: BuildOptions): Promise<BuildOptions> =>
 			drop: On ? [] : ["debugger", "console"],
 
 			define: {
-				"__DEV__": On ? "true" : "false",
+				__DEV__: On ? "true" : "false",
 
-				"__INCREMENT__": `"${`${On ? "DEVELOPMENT" : "PRODUCTION"}-${(await import("ulid")).ulid()}`}"`,
+				__INCREMENT__: `"${`${On ? "DEVELOPMENT" : "PRODUCTION"}-${(await import("ulid")).ulid()}`}"`,
 			},
 
 			treeShaking: true,
