@@ -217,9 +217,9 @@ self.addEventListener("fetch", (Event) => {
 						);
 				}
 
-				const _Response = await (await caches.open(CACHE_CORE)).match(
-					Request,
-				);
+				const _Response = await (
+					await caches.open(CACHE_CORE)
+				).match(Request);
 
 				if (_Response) {
 					__DEV__ &&
