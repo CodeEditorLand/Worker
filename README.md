@@ -20,7 +20,6 @@ modules.
       CSS files. Uses a **cache-first** strategy for fast loading. Also stores
       the dynamically generated JavaScript modules used for CSS loading (see
       below).
-    - **Shim Cache (`CACHE_SHIM`):** Designated for shim/polyfill assets.
 - **Offline Support:** Leverages the caches to allow the application shell and
   cached assets to function offline.
 - **Dynamic CSS Loading:** Intercepts JavaScript `import` statements for

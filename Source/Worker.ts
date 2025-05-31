@@ -8,18 +8,15 @@ const INCREMENT = __INCREMENT__ ?? "Initial";
 
 const CACHE_CORE = `Core-${INCREMENT}`;
 
-const CACHE_SHIM = `Shim-${INCREMENT}`;
-
 const CACHE_ASSET = `Asset-${INCREMENT}`;
 
-const CACHE = [CACHE_CORE, CACHE_SHIM, CACHE_ASSET];
+const CACHE = [CACHE_CORE, CACHE_ASSET];
 
 const CORE_PRECACHE = [
 	"/Application",
 	"/Worker/Policy.js",
 	"/Worker/Register.js",
 	"/Worker/CSS/Load.js",
-	"/Static/Shim/Empty.js",
 ];
 
 const BASE_REMOTE =
