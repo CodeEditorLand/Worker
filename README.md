@@ -1,11 +1,15 @@
 <table><tr><td colspan="1"><h3 align="center"><picture>    </picture> 🍩 </h3></td><td colspan="3" valign="top"><h3 align="center"> Worker </h3></td></tr></table>
 
+---
+
 # [Worker] 🍩
 
 This repository contains a Service Worker designed to enhance web application
 performance and reliability through advanced caching, offline support, and a
 unique strategy for handling dynamic CSS imports originating from JavaScript
 modules.
+
+---
 
 ## Core Functionality
 
@@ -31,6 +35,8 @@ modules.
 - **Client Control Management:** The `Register.js` script ensures the Service
   Worker gains control of the page, potentially reloading the page once after
   the initial registration if necessary.
+
+---
 
 ## Usage: Dynamic CSS Loading via JS Module Response
 
@@ -165,9 +171,13 @@ Service Worker registration within an HTML page (`.html` file).
 
 [Worker]: https://NPMJS.Org/@codeeditorland/worker
 
+---
+
 ## Changelog
 
 See [`CHANGELOG.md`](CHANGELOG.md) for a history of changes to this component.
+
+---
 
 ## Funding
 
