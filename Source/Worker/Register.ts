@@ -1,4 +1,4 @@
-import type { WorkerApplication } from "@Source/Worker/Policy.js";
+import type { WorkerApplication } from "../Worker/Policy.js";
 import type { TrustedTypePolicyFactory } from "trusted-types";
 
 declare global {

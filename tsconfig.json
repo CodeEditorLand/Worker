@@ -8,9 +8,6 @@
 		"target": "ESNext",
 		"moduleResolution": "Bundler",
 		"module": "ESNext",
-		"paths": {
-			"@Source/*": ["Source/*"]
-		},
 		"noEmit": true
 	},
 	"extends": "@playform/build/tsconfig",
