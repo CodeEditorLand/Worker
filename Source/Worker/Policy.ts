@@ -102,6 +102,7 @@ const WarnLog = __DEV__
 				__DEV__ &&
 					ErrorLog(
 						"Failed to create policy 'WorkerApplication':",
+
 						_Error,
 					);
 			}

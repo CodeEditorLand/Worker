@@ -127,7 +127,8 @@ Service Worker registration within an HTML page (`.html` file).
         -->
 		<script>
 			// Set the path relative to the web root where Worker.js will be served.
-			window._WORKER = "/Worker.js"; // Default is "/Worker.js"
+// Default is "/Worker.js"
+			window._WORKER = "/Worker.js";
 		</script>
 
 		<!--

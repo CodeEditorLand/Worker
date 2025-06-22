@@ -14,8 +14,11 @@ const CACHE = [CACHE_CORE, CACHE_ASSET];
 
 const CORE_PRECACHE = [
 	"/Application",
+
 	"/Worker/Policy.js",
+
 	"/Worker/Register.js",
+
 	"/Worker/CSS/Load.js",
 ];
 
@@ -27,7 +30,9 @@ const Log = __DEV__
 	? (..._Message: any[]) => {
 			console.log(
 				`[Worker ${INCREMENT}]`,
+
 				`(Remote: ${BASE_REMOTE})`,
+
 				..._Message,
 			);
 		}
@@ -37,7 +42,9 @@ const ErrorLog = __DEV__
 	? (..._Message: any[]) => {
 			console.error(
 				`[Worker ${INCREMENT}]`,
+
 				`(Remote: ${BASE_REMOTE})`,
+
 				..._Message,
 			);
 		}
@@ -47,7 +54,9 @@ const WarnLog = __DEV__
 	? (..._Message: any[]) => {
 			console.warn(
 				`[Worker ${INCREMENT}]`,
+
 				`(Remote: ${BASE_REMOTE})`,
+
 				..._Message,
 			);
 		}
@@ -92,6 +101,7 @@ self.addEventListener("activate", (Event) => {
 
 								return caches.delete(Cache);
 							}
+
 							return Promise.resolve();
 						}),
 					),
@@ -100,6 +110,7 @@ self.addEventListener("activate", (Event) => {
 					__DEV__ &&
 						ErrorLog(
 							"Cache cleanup failed during activation:",
+
 							err,
 						);
 
@@ -196,6 +207,7 @@ self.addEventListener("fetch", (Event) => {
 
 						(await caches.open(CACHE_CORE)).put(
 							Request,
+
 							_Response.clone(),
 						);
 
@@ -210,6 +222,7 @@ self.addEventListener("fetch", (Event) => {
 					__DEV__ &&
 						WarnLog(
 							`Navigation network fetch failed entirely: ${Path}. Trying cache...`,
+
 							_Error,
 						);
 				}
@@ -232,9 +245,12 @@ self.addEventListener("fetch", (Event) => {
 
 				return new Response(
 					"Network error: You appear to be offline and the page is not cached.",
+
 					{
 						status: 503,
+
 						statusText: "Service Unavailable",
+
 						headers: { "Content-Type": "text/plain" },
 					},
 				);
@@ -292,6 +308,7 @@ self.addEventListener("fetch", (Event) => {
 						__DEV__ &&
 							ErrorLog(
 								`Network error fetching Skip=Intercept ${Path}:`,
+
 								_Error,
 							);
 
@@ -304,6 +321,7 @@ self.addEventListener("fetch", (Event) => {
 					__DEV__ &&
 						ErrorLog(
 							`Error handling Skip=Intercept request for ${Path}:`,
+
 							_Error,
 						);
 
@@ -345,8 +363,10 @@ self.addEventListener("fetch", (Event) => {
 
 					const _Response = new Response(
 						`window._LOAD_CSS_WORKER('${Path}'); export default {};`,
+
 						{
 							status: 200,
+
 							headers: {
 								"Content-Type":
 									"application/javascript; charset=utf-8",
@@ -362,13 +382,16 @@ self.addEventListener("fetch", (Event) => {
 					__DEV__ &&
 						ErrorLog(
 							`Error during CSS-as-JS interception for ${Path}:`,
+
 							_Error,
 						);
 
 					return new Response(
 						`// Error intercepting CSS as JS ${Path}`,
+
 						{
 							status: 500,
+
 							headers: {
 								"Content-Type": "application/javascript",
 							},
@@ -428,6 +451,7 @@ self.addEventListener("fetch", (Event) => {
 							_Response ||
 							new Response(
 								`Failed to fetch asset ${Path} (no response)`,
+
 								{ status: 504 },
 							)
 						);
@@ -435,11 +459,13 @@ self.addEventListener("fetch", (Event) => {
 						__DEV__ &&
 							ErrorLog(
 								`Network fetch failed for Application asset ${Path}:`,
+
 								_Error,
 							);
 
 						return new Response(
 							`Failed to fetch asset ${Path} while offline`,
+
 							{ status: 503 },
 						);
 					}
@@ -448,6 +474,7 @@ self.addEventListener("fetch", (Event) => {
 					__DEV__ &&
 						ErrorLog(
 							`Error accessing asset cache for ${Path}:`,
+
 							_Error,
 						);
 

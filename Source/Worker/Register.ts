@@ -1,5 +1,6 @@
-import type { WorkerApplication } from "../Worker/Policy.js";
 import type { TrustedTypePolicyFactory } from "trusted-types";
+
+import type { WorkerApplication } from "../Worker/Policy.js";
 
 declare global {
 	interface Window {
@@ -111,6 +112,7 @@ if ("serviceWorker" in navigator) {
 					__DEV__ &&
 						ErrorLog(
 							"Error using pre-existing 'WorkerApplication' policy or creating TrustedScriptURL:",
+
 							_Error,
 						);
 
@@ -127,8 +129,10 @@ if ("serviceWorker" in navigator) {
 
 			const Registration = await navigator.serviceWorker.register(
 				URL as unknown as URL,
+
 				{
 					scope: Scope,
+
 					type: "module",
 				},
 			);
@@ -195,6 +199,7 @@ if ("serviceWorker" in navigator) {
 			__DEV__ &&
 				ErrorLog(
 					"Service Worker registration or ready failed:",
+
 					_Error,
 				);
 
