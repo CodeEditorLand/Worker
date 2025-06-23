@@ -1,1 +1,23 @@
-const t=(await import("./Worker.js")).On;var e=async i=>(await import("deepmerge-ts")).deepmerge((await import("./Worker.js")).default,{outdir:"Target",drop:t?[]:["debugger","console"],define:{__DEV__:t?"true":"false",__INCREMENT__:`"${`${t?"DEVELOPMENT":"PRODUCTION"}-${(await import("ulid")).ulid()}`}"`},treeShaking:!0,entryPoints:(await import("@playform/build/Target/Function/Entry.js")).default(i,["Source/Configuration/*"]),platform:"browser",outbase:"Source"});export{t as On,e as default};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+const On = (await import("./Worker.js")).On;
+var Target_default = /* @__PURE__ */ __name(async (Current) => (await import("deepmerge-ts")).deepmerge(
+  (await import("./Worker.js")).default,
+  {
+    outdir: "Target",
+    drop: On ? [] : ["debugger", "console"],
+    define: {
+      __DEV__: On ? "true" : "false",
+      __INCREMENT__: `"${`${On ? "DEVELOPMENT" : "PRODUCTION"}-${(await import("ulid")).ulid()}`}"`
+    },
+    treeShaking: true,
+    entryPoints: (await import("@playform/build/Target/Function/Entry.js")).default(Current, ["Source/Configuration/*"]),
+    platform: "browser",
+    outbase: "Source"
+  }
+), "default");
+export {
+  On,
+  Target_default as default
+};
+//# sourceMappingURL=Target.js.map
