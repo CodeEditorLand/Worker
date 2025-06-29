@@ -1,49 +1,54 @@
-const e =
-		process.env.NODE_ENV === "development" ||
-		process.env.TAURI_ENV_DEBUG === "true",
-	r = process.env.Clean === "true";
-var n = {
-	color: !0,
-	format: "esm",
-	logLevel: "debug",
-	metafile: !0,
-	minify: !e,
-	outdir: "Configuration",
-	platform: "node",
-	target: "esnext",
-	tsconfig: "tsconfig.json",
-	write: !0,
-	legalComments: e ? "inline" : "none",
-	bundle: !1,
-	assetNames: "Asset/[name]-[hash]",
-	sourcemap: e,
-	drop: e ? [] : ["debugger"],
-	ignoreAnnotations: !e,
-	keepNames: e,
-	plugins: [
-		{
-			name: "Target",
-			setup({ onStart: o, initialOptions: { outdir: t } }) {
-				switch (!0) {
-					case r === !0:
-						o(async () => {
-							try {
-								t &&
-									(await (
-										await import("node:fs/promises")
-									).rm(t, { recursive: !0 }));
-							} catch (s) {
-								console.log(s);
-							}
-						});
-						break;
-					default:
-						break;
-				}
-			},
-		},
-	],
-	outbase: "Source/Configuration",
+const On = process.env["NODE_ENV"] === "development" || process.env["TAURI_ENV_DEBUG"] === "true";
+const Clean = process.env["Clean"] === "true";
+var Worker_default = {
+  color: true,
+  format: "esm",
+  logLevel: "debug",
+  metafile: true,
+  minify: !On,
+  outdir: "Configuration",
+  platform: "node",
+  target: "esnext",
+  tsconfig: "tsconfig.json",
+  write: true,
+  legalComments: On ? "inline" : "none",
+  bundle: false,
+  assetNames: "Asset/[name]-[hash]",
+  sourcemap: On,
+  drop: On ? [] : ["debugger"],
+  ignoreAnnotations: !On,
+  keepNames: On,
+  plugins: [
+    {
+      name: "Target",
+      // @ts-ignore
+      setup({ onStart, initialOptions: { outdir } }) {
+        switch (true) {
+          case Clean === true:
+            onStart(async () => {
+              try {
+                outdir ? await (await import("node:fs/promises")).rm(outdir, {
+                  recursive: true
+                }) : {};
+              } catch (_Error) {
+                console.log(_Error);
+              }
+            });
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  ],
+  outbase: "Source/Configuration"
 };
-const { sep: i, posix: a } = await import("node:path");
-export { r as Clean, e as On, n as default, a as posix, i as sep };
+const { sep, posix } = await import("node:path");
+export {
+  Clean,
+  On,
+  Worker_default as default,
+  posix,
+  sep
+};
+//# sourceMappingURL=Worker.js.map
