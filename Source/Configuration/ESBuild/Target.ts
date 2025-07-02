@@ -21,7 +21,7 @@ export default async (Current: BuildOptions): Promise<BuildOptions> =>
 				__INCREMENT__: `"${`${On ? "DEVELOPMENT" : "PRODUCTION"}-${(await import("ulid")).ulid()}`}"`,
 			},
 
-			treeShaking: true,
+			treeShaking: !On,
 
 			entryPoints: (
 				await import("@playform/build/Target/Function/Entry.js")
