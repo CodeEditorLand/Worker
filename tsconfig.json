@@ -1,16 +1,31 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
+
 	"compilerOptions": {
 		"baseUrl": "./",
-		"outDir": "Target",
-		"rootDir": "Source",
+
+		"composite": true,
+
+		"declarationMap": true,
+
+		"emitDeclarationOnly": true,
+
 		"lib": ["DOM", "ESNext", "WebWorker"],
-		"target": "ESNext",
-		"moduleResolution": "Bundler",
+
 		"module": "ESNext",
-		"noEmit": true
+
+		"moduleResolution": "Bundler",
+
+		"outDir": "Target",
+
+		"rootDir": "Source",
+
+		"target": "ESNext"
 	},
+
+	"exclude": ["Target"],
+
 	"extends": "@playform/build/tsconfig",
-	"include": ["Source", "@types/serviceworker"],
-	"exclude": ["Target"]
+
+	"include": ["Source", "@types/serviceworker"]
 }
