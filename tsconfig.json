@@ -23,7 +23,7 @@
 		"target": "ESNext"
 	},
 
-	"exclude": ["Target"],
+	"exclude": ["Target", "node_modules"],
 
 	"extends": "@playform/build/tsconfig",
 
