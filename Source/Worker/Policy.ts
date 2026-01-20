@@ -63,7 +63,7 @@ const WarnLog = __DEV__
 						createScriptURL: (Input) => {
 							if (
 								Input &&
-								/^\/[^/\\:]+\.js(\?.*)?$/.test(Input)
+								/^\/[^\\:]+\.(js|mjs)(\?.*)?$/.test(Input)
 							) {
 								__DEV__ &&
 									Log(
