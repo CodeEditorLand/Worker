@@ -491,8 +491,17 @@ self.addEventListener("fetch", (Event) => {
 		);
 });
 
-self.addEventListener("message", (event) => {
-	__DEV__ && Log(`Received message from client:`, event.data);
+self.addEventListener("message", (Event) => {
+	if (Event.origin !== self.location.origin && Event.origin !== BASE_REMOTE) {
+		__DEV__ &&
+			WarnLog(
+				`Received message from untrusted origin: ${Event.origin}`,
+				Event.data,
+			);
+		return;
+	}
+
+	__DEV__ && Log(`Received message from client:`, Event.data);
 });
 
 export default {};
