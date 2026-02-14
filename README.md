@@ -176,7 +176,7 @@ Service Worker registration within an HTML page (`.html` file).
 
 ## Changelog
 
-See [`CHANGELOG.md`](CHANGELOG.md) for a history of changes to this component.
+See [`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/) for a history of changes to this component.
 
 ---
 

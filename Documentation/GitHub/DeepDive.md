@@ -287,7 +287,7 @@ Worker/
 │   └── ESBuild/                  # Build configuration for optimized output
 └── Documentation/
     └── GitHub/
-        └── Deep Dive.md          # This comprehensive technical guide
+        └── DeepDive.md          # This comprehensive technical guide
 ```
 
 ---
