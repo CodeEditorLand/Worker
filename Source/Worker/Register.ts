@@ -45,29 +45,24 @@ const WarnLog = __DEV__
 	: () => {};
 
 if ("serviceWorker" in navigator) {
-	navigator.serviceWorker.addEventListener("controllerchange", () => {
-		__DEV__ && Log("Controller changed event fired!");
+	const RegisteredKey = "WorkerRegistered";
 
-		if (sessionStorage.getItem(Reload) === "true") {
-			__DEV__ && Log("Reload flag is set, reloading page now...");
+	const CheckForUpdate = async (Registration: ServiceWorkerRegistration) => {
+		const Update = await Registration.update();
 
-			sessionStorage.removeItem(Reload);
+		__DEV__ &&
+			Log(
+				"Service Worker update check:",
+				Update ? "Update found" : "Up to date",
+			);
 
-			window.location.reload();
-		} else {
-			__DEV__ && Log("Controller changed, but no reload needed.");
+		if (Update) {
+			__DEV__ &&
+				Log(
+					"New service worker version detected, will refresh on next activation",
+				);
 		}
-	});
-
-	navigator.serviceWorker.addEventListener("message", (Event) => {
-		__DEV__ && Log("[Client] Received message from SW:", Event.data);
-
-		if (Event.data?.Version === "New") {
-			__DEV__ && WarnLog("New version available! Reloading page...");
-
-			window.location.reload();
-		}
-	});
+	};
 
 	const Control = async () => {
 		const InitiallyControlled = !!navigator.serviceWorker.controller;
@@ -165,35 +160,38 @@ if ("serviceWorker" in navigator) {
 					`Page controlled after registration + ready: ${Controlled}`,
 				);
 
+			// Always mark as registered once we have a working registration
+			sessionStorage.setItem(RegisteredKey, "true");
+
+			// Periodically check for updates (once per session)
+			const UpdateRegistration =
+				await navigator.serviceWorker.getRegistration(Scope);
+
+			if (UpdateRegistration) {
+				CheckForUpdate(UpdateRegistration);
+			}
+
 			if (!InitiallyControlled && !Controlled) {
-				if (!sessionStorage.getItem(Reload)) {
-					__DEV__ &&
-						Log("Page needs control. Setting flag and RELOADING.");
+				__DEV__ &&
+					Log("Page needs control. Setting flag and RELOADING.");
 
-					sessionStorage.setItem(Reload, "true");
+				sessionStorage.setItem(Reload, "true");
 
-					window.location.reload();
+				window.location.reload();
 
-					return;
-				} else {
-					__DEV__ &&
-						WarnLog(
-							"Reload flag set, but still not controlled. Removing flag.",
-						);
+				return;
+			}
 
-					sessionStorage.removeItem(Reload);
-				}
-			} else {
-				if (sessionStorage.getItem(Reload)) {
-					__DEV__ && Log(`Page controlled. Clearing reload flag.`);
+			if (sessionStorage.getItem(Reload)) {
+				__DEV__ && Log(`Page controlled. Clearing reload flag.`);
 
-					sessionStorage.removeItem(Reload);
-				}
+				sessionStorage.removeItem(Reload);
+			}
 
-				if (Controlled)
-					__DEV__ && Log("Service Worker actively controlling.");
-				else if (InitiallyControlled)
-					__DEV__ && Log("Service Worker was already controlling.");
+			if (Controlled) {
+				__DEV__ && Log("Service Worker actively controlling.");
+			} else if (InitiallyControlled) {
+				__DEV__ && Log("Service Worker was already controlling.");
 			}
 		} catch (_Error) {
 			__DEV__ &&
@@ -214,20 +212,24 @@ if ("serviceWorker" in navigator) {
 					);
 			}
 
-			sessionStorage.removeItem(Reload);
+			if (sessionStorage.getItem(Reload)) {
+				sessionStorage.removeItem(Reload);
+			}
+		}
+
+		if (document.readyState === "loading") {
+			__DEV__ && Log("DOM not ready, deferring SW registration.");
+
+			document.addEventListener("DOMContentLoaded", Control);
+		} else {
+			__DEV__ && Log("DOM ready, running SW registration now.");
+
+			Control();
 		}
 	};
+}
 
-	if (document.readyState === "loading") {
-		__DEV__ && Log("DOM not ready, deferring SW registration.");
-
-		document.addEventListener("DOMContentLoaded", Control);
-	} else {
-		__DEV__ && Log("DOM ready, running SW registration now.");
-
-		Control();
-	}
-} else {
+if (!("serviceWorker" in navigator)) {
 	__DEV__ && WarnLog("Service Worker API not supported.");
 }
 

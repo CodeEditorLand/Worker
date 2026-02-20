@@ -30,5 +30,7 @@ export default async (Current: BuildOptions): Promise<BuildOptions> =>
 			platform: "browser",
 
 			outbase: "Source",
+
+			logOverride: { "suspicious-logical-operator": "silent" },
 		},
 	);

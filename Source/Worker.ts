@@ -6,6 +6,9 @@ declare const __INCREMENT__: string;
 
 const INCREMENT = __INCREMENT__ ?? "Initial";
 
+// Store the current version that clients are using
+let CurrentClientVersion: string | null = null;
+
 const CACHE_CORE = `Core-${INCREMENT}`;
 
 const CACHE_ASSET = `Asset-${INCREMENT}`;
@@ -75,7 +78,9 @@ self.addEventListener("install", (Event) => {
 					return cache.addAll(CORE_PRECACHE);
 				})
 				.catch(
+					// eslint-disable-next-line no-unused-expressions
 					(_Error) =>
+						// eslint-disable-next-line no-unused-expressions
 						__DEV__ && ErrorLog("Core Precaching failed:", _Error),
 				),
 		]).then(() => {
@@ -134,21 +139,40 @@ self.addEventListener("activate", (Event) => {
 						`Version ${INCREMENT} activated and controlling clients.`,
 					);
 
-				return (
-					await self.clients.matchAll({
-						type: "window",
-					})
-				).forEach((Client) => {
+				// Only notify clients if this is actually a new version
+				const IsNewVersion = CurrentClientVersion !== INCREMENT;
+
+				if (IsNewVersion) {
 					__DEV__ &&
 						Log(
-							`Sending New Version message to client ${Client.id}`,
+							`New version detected (${CurrentClientVersion} -> ${INCREMENT}). Notifying clients.`,
 						);
 
-					Client.postMessage({ Version: "New" });
-				});
+					CurrentClientVersion = INCREMENT;
+
+					return (
+						await self.clients.matchAll({
+							type: "window",
+						})
+					).forEach((Client) => {
+						__DEV__ &&
+							Log(
+								`Sending New Version message to client ${Client.id}`,
+							);
+
+						Client.postMessage({ Version: "New" });
+					});
+				} else {
+					__DEV__ &&
+						Log(
+							`Same version (${INCREMENT}), skipping client notification to prevent refresh loop.`,
+						);
+				}
 			})
 			.catch(
+				// eslint-disable-next-line no-unused-expressions
 				(_Error) =>
+					// eslint-disable-next-line no-unused-expressions
 					__DEV__ && ErrorLog(`Activation failed overall:`, _Error),
 			),
 	);
@@ -498,6 +522,7 @@ self.addEventListener("message", (Event) => {
 				`Received message from untrusted origin: ${Event.origin}`,
 				Event.data,
 			);
+
 		return;
 	}
 

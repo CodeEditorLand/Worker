@@ -13,7 +13,8 @@ var Target_default = /* @__PURE__ */ __name(async (Current) => (await import("de
     treeShaking: !On,
     entryPoints: (await import("@playform/build/Target/Function/Entry.js")).default(Current, ["Source/Configuration/*"]),
     platform: "browser",
-    outbase: "Source"
+    outbase: "Source",
+    logOverride: { "suspicious-logical-operator": "silent" }
   }
 ), "default");
 export {

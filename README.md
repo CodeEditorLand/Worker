@@ -1,8 +1,60 @@
-<table><tr><td colspan="1"><h3 align="center"><picture>    </picture> 🍩 </h3></td><td colspan="3" valign="top"><h3 align="center"> Worker </h3></td></tr></table>
+<table>
+<tr>
+<td align="left" valign="middle">
+<h3 align="left">Worker</h3>
+</td>
+<td align="left" valign="middle">
+<h3 align="left">🍩</h3>
+</td>
+<td align="left" valign="middle">
+<h3 align="left">+</h3>
+</td>
+<td align="left" valign="middle">
+<h3 align="left">
+<a href="https://Editor.Land" target="_blank">
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://PlayForm.Cloud/Dark/Image/GitHub/Land.svg">
+<source media="(prefers-color-scheme: light)" srcset="https://PlayForm.Cloud/Image/GitHub/Land.svg">
+<img width="28" alt="Land Logo" src="https://PlayForm.Cloud/Image/GitHub/Land.svg">
+</picture>
+</a>
+</h3>
+</td>
+<td align="left" valign="middle">
+<h3 align="left">
+<a href="https://Editor.Land" target="_blank">
+Land
+</a>
+</h3>
+</td>
+<td align="left" valign="middle">
+<h3 align="left">🏞️</h3>
+</td>
+</tr>
+</table>
 
 ---
 
-# [Worker] 🍩
+# **Worker** 🍩 The Service Worker for Land 🏞️
+
+[![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Worker/tree/Current/LICENSE)
+[![NPM Version](https://img.shields.io/npm/v/@codeeditorland/worker.svg)](https://www.npmjs.com/package/@codeeditorland/worker)
+
+Welcome to **Worker**, the Service Worker for the **Land Code Editor** that
+enhances web application performance and reliability through advanced caching,
+offline support, and a unique strategy for handling dynamic CSS imports from
+JavaScript modules.
+
+**Worker** is engineered to:
+
+1. **Implement Asset Caching:** Provide multiple caching strategies including
+   network-first for navigation and cache-first for static assets.
+2. **Enable Offline Support:** Allow the application shell and cached assets to
+   function without network connectivity.
+3. **Handle Dynamic CSS Loading:** Intercept JavaScript CSS imports and respond
+   with JavaScript modules that trigger standard `<link>` tag loading.
+4. **Support Automatic Updates:** Detect new Service Worker versions and prompt
+   clients to reload for seamless updates.
 
 This repository contains a Service Worker designed to enhance web application
 performance and reliability through advanced caching, offline support, and a
@@ -36,9 +88,41 @@ modules.
   Worker gains control of the page, potentially reloading the page once after
   the initial registration if necessary.
 
----
+    ***
 
-## Usage: Dynamic CSS Loading via JS Module Response
+    ## System Architecture Diagram 🏗️
+
+    This diagram illustrates `Worker`'s service worker caching and CSS loading
+    strategy.
+
+    ```mermaid
+    sequenceDiagram
+    classDef sw fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef client fill:#9cf,stroke:#333,stroke-width:2px;
+    classDef cache fill:#cfc,stroke:#333,stroke-width:1px;
+
+    participant Client as Client (Browser):::client
+    participant SW as Service Worker:::sw
+    participant CoreCache as CACHE_CORE:::cache
+    participant AssetCache as CACHE_ASSET:::cache
+
+    Client->>SW: Fetch /Application/ (navigation)
+    SW->>CoreCache: Network-first strategy
+    CoreCache-->>SW: Return cached shell or network
+
+    Client->>SW: Import /Static/Application/*.css
+    SW-->>Client: Respond with JS module (load CSS via link)
+    Client->>Client: Execute JS, call window._LOAD_CSS_WORKER
+    Client->>Client: Create <link> with ?Skip=Intercept
+    Client->>SW: Fetch CSS with ?Skip=Intercept
+    SW->>AssetCache: Cache-first for CSS
+    AssetCache-->>SW: Return CSS content
+    SW-->>Client: CSS applied
+    ```
+
+    ***
+
+    ## Usage: Dynamic CSS Loading via JS Module Response
 
 This worker implements a specific strategy to handle dynamic CSS imports from
 JavaScript modules (e.g., `import './some-styles.css';`) located under the
@@ -93,6 +177,24 @@ This two-step fetch process, initiated by the SW's JavaScript response and
 distinguished by the `Skip=Intercept` parameter, allows the initial JavaScript
 import to resolve quickly while triggering the standard browser mechanism for
 loading the actual CSS styles without causing infinite interception loops.
+
+---
+
+## Deep Dive & Component Breakdown 🔬
+
+To understand how `Worker`'s service worker implements the dynamic CSS loading
+strategy, see the following source files:
+
+- **[`Worker.js`](Worker.js)** - Main service worker with caching strategies
+- **[`Register.js`](Register.js)** - Service worker registration and update
+  handling
+- **[`CSS/Load.js`](CSS/Load.js)** - Client-side CSS loader function
+  (`window._LOAD_CSS_WORKER`)
+
+The source files explain the two-step fetch process, cache-first strategies for
+assets, and the `?Skip=Intercept` parameter pattern for avoiding infinite loops.
+
+---
 
 ### Example Implementation
 
@@ -176,18 +278,76 @@ Service Worker registration within an HTML page (`.html` file).
 
 ## Changelog
 
-See [`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/) for a history of changes to this component.
+See [`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/) for
+a history of changes to this component.
 
 ---
 
-## Funding
+## License ⚖️
 
-This project is funded through
-[NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
+This project is released into the public domain under the **Creative Commons CC0
+Universal** license. You are free to use, modify, distribute, and build upon
+this work for any purpose, without any restrictions. For the full legal text,
+see the [`LICENSE`](https://github.com/CodeEditorLand/Worker/tree/Current/)
+file.
+
+---
+
+## Changelog 📜
+
+Stay updated with our progress! See
+[`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/) for a
+history of changes specific to **Worker**.
+
+---
+
+## Funding & Acknowledgements 🙏🏻
+
+**Worker** is a core element of the **Land** ecosystem. This project is funded
+through [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
 [NLnet](https://NLnet.NL) with financial support from the European Commission's
 [Next Generation Internet](https://ngi.eu) program. Learn more at the
 [NLnet project page](https://NLnet.NL/project/Land).
 
-| Land                                                                                                                                                  | PlayForm                                                                                                                                                   | NLnet                                                                                        | NGI0 Commons Fund                                                                                                                                   |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [<img src="https://raw.githubusercontent.com/CodeEditorLand/Asset/refs/heads/Current/Logo/Land.svg" height="80px" alt="Land" />](https://Editor.Land) | [<img src="https://raw.githubusercontent.com/PlayForm/Asset/refs/heads/Current/Logo/PlayForm.svg" height="80px" alt="PlayForm" />](https://PlayForm.Cloud) | [<img width="240px" src="https://NLnet.NL/logo/banner.svg" alt="NLnet" />](https://NLnet.NL) | [<img width="240px" src="https://NLnet.NL/image/logos/NGI0CommonsFund_tag_black_mono.svg" alt="NGI0 Commons Fund" />](https://NLnet.NL/commonsfund) |
+<table>
+	<thead>
+		<tr>
+			<th align="left"><strong>Land</strong></th>
+			<th align="left"><strong>PlayForm</strong></th>
+			<th align="left"><strong>NLnet</strong></th>
+			<th align="left"><strong>NGI0 Commons Fund</strong></th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td align="left" valign="middle">
+				<a href="https://Editor.Land">
+					<img width="60" src="https://raw.githubusercontent.com/CodeEditorLand/Asset/refs/heads/Current/Logo/Land.svg" alt="Land">
+				</a>
+			</td>
+			<td align="left" valign="middle">
+				<a href="https://PlayForm.Cloud">
+					<img width="76" src="https://raw.githubusercontent.com/PlayForm/Asset/refs/heads/Current/Logo/PlayForm.svg" alt="PlayForm">
+				</a>
+			</td>
+			<td align="left" valign="middle">
+				<a href="https://NLnet.NL">
+					<img width="240" src="https://NLnet.NL/logo/banner.svg" alt="NLnet">
+				</a>
+			</td>
+			<td align="left" valign="middle">
+				<a href="https://NLnet.NL/commonsfund">
+					<img width="240" src="https://NLnet.NL/image/logos/NGI0CommonsFund_tag_black_mono.svg" alt="NGI0 Commons Fund">
+				</a>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+---
+
+**Project Maintainers**: Source Open
+([Source/Open@Editor.Land](mailto:Source/Open@Editor.Land)) |
+[GitHub Repository](https://github.com/CodeEditorLand/Worker) |
+[Report an Issue](https://github.com/CodeEditorLand/Worker/issues) |
+[Security Policy](https://github.com/CodeEditorLand/Worker/security/policy)
