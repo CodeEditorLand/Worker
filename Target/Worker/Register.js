@@ -1,6 +1,6 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-const INCREMENT = "DEVELOPMENT-01KHC8G82WA8YPTWCB2838EMZ2";
+const INCREMENT = "DEVELOPMENT-01KHW1M5JE79JZ8APPF0ZTM00Y";
 const Path = typeof window._WORKER === "string" ? window._WORKER : "/Worker.js";
 const Scope = "/Application";
 const Reload = "WorkerReload";
@@ -17,23 +17,19 @@ const WarnLog = true ? (..._Message) => {
 } : () => {
 };
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    Log("Controller changed event fired!");
-    if (sessionStorage.getItem(Reload) === "true") {
-      Log("Reload flag is set, reloading page now...");
-      sessionStorage.removeItem(Reload);
-      window.location.reload();
-    } else {
-      Log("Controller changed, but no reload needed.");
+  const RegisteredKey = "WorkerRegistered";
+  const CheckForUpdate = /* @__PURE__ */ __name(async (Registration) => {
+    const Update = await Registration.update();
+    Log(
+      "Service Worker update check:",
+      Update ? "Update found" : "Up to date"
+    );
+    if (Update) {
+      Log(
+        "New service worker version detected, will refresh on next activation"
+      );
     }
-  });
-  navigator.serviceWorker.addEventListener("message", (Event) => {
-    Log("[Client] Received message from SW:", Event.data);
-    if (Event.data?.Version === "New") {
-      WarnLog("New version available! Reloading page...");
-      window.location.reload();
-    }
-  });
+  }, "CheckForUpdate");
   const Control = /* @__PURE__ */ __name(async () => {
     const InitiallyControlled = !!navigator.serviceWorker.controller;
     Log(`Page controlled on script start: ${InitiallyControlled}`);
@@ -96,27 +92,25 @@ if ("serviceWorker" in navigator) {
       Log(
         `Page controlled after registration + ready: ${Controlled}`
       );
+      sessionStorage.setItem(RegisteredKey, "true");
+      const UpdateRegistration = await navigator.serviceWorker.getRegistration(Scope);
+      if (UpdateRegistration) {
+        CheckForUpdate(UpdateRegistration);
+      }
       if (!InitiallyControlled && !Controlled) {
-        if (!sessionStorage.getItem(Reload)) {
-          Log("Page needs control. Setting flag and RELOADING.");
-          sessionStorage.setItem(Reload, "true");
-          window.location.reload();
-          return;
-        } else {
-          WarnLog(
-            "Reload flag set, but still not controlled. Removing flag."
-          );
-          sessionStorage.removeItem(Reload);
-        }
-      } else {
-        if (sessionStorage.getItem(Reload)) {
-          Log(`Page controlled. Clearing reload flag.`);
-          sessionStorage.removeItem(Reload);
-        }
-        if (Controlled)
-          Log("Service Worker actively controlling.");
-        else if (InitiallyControlled)
-          Log("Service Worker was already controlling.");
+        Log("Page needs control. Setting flag and RELOADING.");
+        sessionStorage.setItem(Reload, "true");
+        window.location.reload();
+        return;
+      }
+      if (sessionStorage.getItem(Reload)) {
+        Log(`Page controlled. Clearing reload flag.`);
+        sessionStorage.removeItem(Reload);
+      }
+      if (Controlled) {
+        Log("Service Worker actively controlling.");
+      } else if (InitiallyControlled) {
+        Log("Service Worker was already controlling.");
       }
     } catch (_Error) {
       ErrorLog(
@@ -128,17 +122,20 @@ if ("serviceWorker" in navigator) {
           "This failure might be due to a Trusted Types policy violation. Check policy definitions and CSP."
         );
       }
-      sessionStorage.removeItem(Reload);
+      if (sessionStorage.getItem(Reload)) {
+        sessionStorage.removeItem(Reload);
+      }
+    }
+    if (document.readyState === "loading") {
+      Log("DOM not ready, deferring SW registration.");
+      document.addEventListener("DOMContentLoaded", Control);
+    } else {
+      Log("DOM ready, running SW registration now.");
+      Control();
     }
   }, "Control");
-  if (document.readyState === "loading") {
-    Log("DOM not ready, deferring SW registration.");
-    document.addEventListener("DOMContentLoaded", Control);
-  } else {
-    Log("DOM ready, running SW registration now.");
-    Control();
-  }
-} else {
+}
+if (!("serviceWorker" in navigator)) {
   WarnLog("Service Worker API not supported.");
 }
 var Register_default = {};

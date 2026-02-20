@@ -1,4 +1,5 @@
-const INCREMENT = "DEVELOPMENT-01KHC8G82WA8YPTWCB2838EMZ2";
+const INCREMENT = "DEVELOPMENT-01KHW1M5JE79JZ8APPF0ZTM00Y";
+let CurrentClientVersion = null;
 const CACHE_CORE = `Core-${INCREMENT}`;
 const CACHE_ASSET = `Asset-${INCREMENT}`;
 const CACHE = [CACHE_CORE, CACHE_ASSET];
@@ -41,6 +42,7 @@ self.addEventListener("install", (Event) => {
         Log(`Precaching Core Assets:`, CORE_PRECACHE);
         return cache.addAll(CORE_PRECACHE);
       }).catch(
+        // eslint-disable-next-line no-unused-expressions
         (_Error) => ErrorLog("Core Precaching failed:", _Error)
       )
     ]).then(() => {
@@ -80,15 +82,27 @@ self.addEventListener("activate", (Event) => {
       Log(
         `Version ${INCREMENT} activated and controlling clients.`
       );
-      return (await self.clients.matchAll({
-        type: "window"
-      })).forEach((Client) => {
+      const IsNewVersion = CurrentClientVersion !== INCREMENT;
+      if (IsNewVersion) {
         Log(
-          `Sending New Version message to client ${Client.id}`
+          `New version detected (${CurrentClientVersion} -> ${INCREMENT}). Notifying clients.`
         );
-        Client.postMessage({ Version: "New" });
-      });
+        CurrentClientVersion = INCREMENT;
+        return (await self.clients.matchAll({
+          type: "window"
+        })).forEach((Client) => {
+          Log(
+            `Sending New Version message to client ${Client.id}`
+          );
+          Client.postMessage({ Version: "New" });
+        });
+      } else {
+        Log(
+          `Same version (${INCREMENT}), skipping client notification to prevent refresh loop.`
+        );
+      }
     }).catch(
+      // eslint-disable-next-line no-unused-expressions
       (_Error) => ErrorLog(`Activation failed overall:`, _Error)
     )
   );
