@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../Source/Configuration/ESBuild/Target.ts"],
+  "sourcesContent": ["import type { BuildOptions } from \"esbuild\";\n\nexport const On = (await import(\"./Worker.js\")).On;\n\n/**\n * @module ESBuild\n *\n */\nexport default async (Current: BuildOptions): Promise<BuildOptions> =>\n\t(await import(\"deepmerge-ts\")).deepmerge<[BuildOptions, BuildOptions]>(\n\t\t(await import(\"./Worker.js\")).default,\n\n\t\t{\n\t\t\toutdir: \"Target\",\n\n\t\t\tdrop: On ? [] : [\"debugger\", \"console\"],\n\n\t\t\tdefine: {\n\t\t\t\t__DEV__: On ? \"true\" : \"false\",\n\n\t\t\t\t__INCREMENT__: `\"${`${On ? \"DEVELOPMENT\" : \"PRODUCTION\"}-${(await import(\"ulid\")).ulid()}`}\"`,\n\t\t\t},\n\n\t\t\ttreeShaking: !On,\n\n\t\t\tentryPoints: (\n\t\t\t\tawait import(\"@playform/build/Target/Function/Entry.js\")\n\t\t\t).default(Current, [\"Source/Configuration/*\"]),\n\n\t\t\tplatform: \"browser\",\n\n\t\t\toutbase: \"Source\",\n\n\t\t\tlogOverride: { \"suspicious-logical-operator\": \"silent\" },\n\t\t},\n\t);\n"],
+  "mappings": ";;AAEO,MAAM,MAAM,MAAM,OAAO,aAAa,GAAG;AAMhD,IAAO,iBAAQ,8BAAO,aACpB,MAAM,OAAO,cAAc,GAAG;AAAA,GAC7B,MAAM,OAAO,aAAa,GAAG;AAAA,EAE9B;AAAA,IACC,QAAQ;AAAA,IAER,MAAM,KAAK,CAAC,IAAI,CAAC,YAAY,SAAS;AAAA,IAEtC,QAAQ;AAAA,MACP,SAAS,KAAK,SAAS;AAAA,MAEvB,eAAe,IAAI,GAAG,KAAK,gBAAgB,YAAY,KAAK,MAAM,OAAO,MAAM,GAAG,KAAK,CAAC,EAAE;AAAA,IAC3F;AAAA,IAEA,aAAa,CAAC;AAAA,IAEd,cACC,MAAM,OAAO,0CAA0C,GACtD,QAAQ,SAAS,CAAC,wBAAwB,CAAC;AAAA,IAE7C,UAAU;AAAA,IAEV,SAAS;AAAA,IAET,aAAa,EAAE,+BAA+B,SAAS;AAAA,EACxD;AACD,GA3Bc;",
+  "names": []
+}
