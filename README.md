@@ -1,13 +1,15 @@
 <table>
 <tr>
 <td align="left" valign="middle">
-<h3 align="left">Worker</h3>
+<h3 align="left"> Worker</h3>
 </td>
 <td align="left" valign="middle">
-<h3 align="left">🍩</h3>
+<h3 align="left">
+🍩
+</h3>
 </td>
 <td align="left" valign="middle">
-<h3 align="left">+</h3>
+<h3 align="left"> + </h3>
 </td>
 <td align="left" valign="middle">
 <h3 align="left">
@@ -28,7 +30,9 @@ Land
 </h3>
 </td>
 <td align="left" valign="middle">
-<h3 align="left">🏞️</h3>
+<h3 align="left">
+🏞️
+</h3>
 </td>
 </tr>
 </table>
@@ -88,41 +92,45 @@ modules.
   Worker gains control of the page, potentially reloading the page once after
   the initial registration if necessary.
 
-    ***
+---
 
-    ## System Architecture Diagram 🏗️
+## System Architecture Diagram 🏗️
 
-    This diagram illustrates `Worker`'s service worker caching and CSS loading
-    strategy.
+This diagram illustrates `Worker`'s service worker caching and CSS loading
+strategy.
 
-    ```mermaid
-    sequenceDiagram
-    classDef sw fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef client fill:#9cf,stroke:#333,stroke-width:2px;
-    classDef cache fill:#cfc,stroke:#333,stroke-width:1px;
+```mermaid
+graph LR
+classDef worker fill:#f9f,stroke:#333,stroke-width:2px;
+classDef client fill:#9cf,stroke:#333,stroke-width:2px;
+classDef cache fill:#cfc,stroke:#333,stroke-width:1px;
 
-    participant Client as Client (Browser):::client
-    participant SW as Service Worker:::sw
-    participant CoreCache as CACHE_CORE:::cache
-    participant AssetCache as CACHE_ASSET:::cache
+subgraph "Client (Browser)"
+Client["Client Application"]:::client
+end
 
-    Client->>SW: Fetch /Application/ (navigation)
-    SW->>CoreCache: Network-first strategy
-    CoreCache-->>SW: Return cached shell or network
+subgraph "Service Worker"
+SW["Service Worker"]:::worker
+CoreCache["CACHE_CORE"]:::cache
+AssetCache["CACHE_ASSET"]:::cache
+end
 
-    Client->>SW: Import /Static/Application/*.css
-    SW-->>Client: Respond with JS module (load CSS via link)
-    Client->>Client: Execute JS, call window._LOAD_CSS_WORKER
-    Client->>Client: Create <link> with ?Skip=Intercept
-    Client->>SW: Fetch CSS with ?Skip=Intercept
-    SW->>AssetCache: Cache-first for CSS
-    AssetCache-->>SW: Return CSS content
-    SW-->>Client: CSS applied
-    ```
+Client -- Fetch /Application/ --> SW
+SW -- Network-first --> CoreCache
+CoreCache -- Return cached or network --> SW
 
-    ***
+Client -- Import *.css --> SW
+SW -- JS module response --> Client
+Client -- Create <link> --> Client
+Client -- Fetch CSS --> SW
+SW -- Cache-first --> AssetCache
+AssetCache -- Return CSS --> SW
+SW -- CSS applied --> Client
+```
 
-    ## Usage: Dynamic CSS Loading via JS Module Response
+---
+
+## Usage: Dynamic CSS Loading via JS Module Response
 
 This worker implements a specific strategy to handle dynamic CSS imports from
 JavaScript modules (e.g., `import './some-styles.css';`) located under the
