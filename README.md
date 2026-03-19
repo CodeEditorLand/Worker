@@ -193,11 +193,12 @@ loading the actual CSS styles without causing infinite interception loops.
 To understand how `Worker`'s service worker implements the dynamic CSS loading
 strategy, see the following source files:
 
-- **[`Worker.js`](Worker.js)** - Main service worker with caching strategies
-- **[`Register.js`](Register.js)** - Service worker registration and update
-  handling
-- **[`CSS/Load.js`](CSS/Load.js)** - Client-side CSS loader function
-  (`window._LOAD_CSS_WORKER`)
+- **[`Worker.ts`](Source/Worker/Worker.ts)** - Main service worker with caching
+strategies
+- **[`Register.ts`](Source/Worker/Register.ts)** - Service worker registration
+and update handling
+- **[`Load.ts`](Source/Worker/CSS/Load.ts)** - Client-side CSS loader function
+(`window._LOAD_CSS_WORKER`)
 
 The source files explain the two-step fetch process, cache-first strategies for
 assets, and the `?Skip=Intercept` parameter pattern for avoiding infinite loops.
