@@ -1,6 +1,6 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-const INCREMENT = "DEVELOPMENT-01KM2JRV2N8QM3NJMARRFWMGJ0";
+const INCREMENT = "DEVELOPMENT-01KM2TWST166DCEXGRJKTSNYFB";
 const Path = typeof window._WORKER === "string" ? window._WORKER : "/Worker.js";
 const Scope = "/Application";
 const Reload = "WorkerReload";
