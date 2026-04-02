@@ -39,9 +39,9 @@ Land
 
 ---
 
-# **Worker** 🍩
+# **Worker** 🍩
 
-The Service Worker for Land 🏞️
+The Service Worker for Land 🏞️
 
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Worker/tree/Current/LICENSE)
 [![NPM Version](https://img.shields.io/npm/v/@codeeditorland/worker.svg)](https://www.npmjs.com/package/@codeeditorland/worker)
@@ -64,7 +64,7 @@ modules.
 
 ---
 
-## Key Features 🔐
+## Key Features 🔐
 
 - **Asset Caching:** Implements multiple caching strategies:
     - **Core Cache (`CACHE_CORE`):** Stores essential application shell files
@@ -125,7 +125,7 @@ SW -- CSS applied --> Client
 
 ---
 
-## Usage: Dynamic CSS Loading via JS Module Response 🚀
+## Usage: Dynamic CSS Loading via JS Module Response 🚀
 
 This worker implements a specific strategy to handle dynamic CSS imports from
 JavaScript modules (e.g., `import './some-styles.css';`) located under the
@@ -183,7 +183,7 @@ loading CSS without causing infinite interception loops.
 
 ---
 
-## Deep Dive & Component Breakdown 🔬
+## Deep Dive & Component Breakdown 🔬
 
 To understand how `Worker`'s service worker implements the dynamic CSS loading
 strategy, see the following source files:
