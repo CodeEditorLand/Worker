@@ -51,16 +51,16 @@ application performance and reliability. It provides advanced caching, offline
 support, and a unique strategy for handling dynamic CSS imports from JavaScript
 modules.
 
-**Worker** is engineered to:
+**What Worker gives you:**
 
-1. **Implement Asset Caching:** Provide multiple caching strategies including
-   network-first for navigation and cache-first for static assets.
-2. **Enable Offline Support:** Allow the application shell and cached assets to
-   function without network connectivity.
-3. **Handle Dynamic CSS Loading:** Intercept JavaScript CSS imports and respond
-   with JavaScript modules that trigger standard `<link>` tag loading.
-4. **Support Automatic Updates:** Detect new Service Worker versions and prompt
-   clients to reload for seamless updates.
+1. **Instant asset loading.** Cache-first for static assets means fonts, icons,
+   and scripts load from disk, not the network. Zero latency on repeat visits.
+2. **Offline-ready shell.** The editor shell loads without a network connection.
+   Open your workspace on a plane.
+3. **CSS that just works.** Intercepts JavaScript CSS imports and converts them
+   to native `<link>` tags. No FOUC, no flash of unstyled content.
+4. **Seamless updates.** New Service Worker versions install silently in the
+   background. One prompt to reload, and you're on the latest build.
 
 ---
 
