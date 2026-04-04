@@ -296,6 +296,13 @@ history of changes specific to **Worker**.
 
 ---
 
+
+## See Also
+
+- [Architecture Overview](https://editor.land/Doc/architecture)
+- [Wind](https://github.com/CodeEditorLand/Wind)
+- [Sky](https://github.com/CodeEditorLand/Sky)
+
 ## Funding & Acknowledgements 🙏🏻
 
 Code Editor Land is funded through the NGI0 Commons Fund, established by NLnet
