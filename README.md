@@ -44,7 +44,7 @@ Land
 The Service Worker for Land 🏞️
 
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Worker/tree/Current/LICENSE)
-[![NPM Version](https://img.shields.io/npm/v/@codeeditorland/worker.svg)](https://www.npmjs.com/package/@codeeditorland/worker)
+[<img src="https://cdn.simpleicons.org/typescript/3178C6" width="14" alt="TypeScript" />](https://www.typescriptlang.org/)&#x2001;[![NPM Version](https://img.shields.io/npm/v/@codeeditorland/worker.svg)](https://www.npmjs.com/package/@codeeditorland/worker)
 
 **Worker** is the Service Worker for the **Land Code Editor** that enhances web
 application performance and reliability. It provides advanced caching, offline
