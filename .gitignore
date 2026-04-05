@@ -1,0 +1,19 @@
+# Worker Package - Ephemeral build artifacts
+/Target/*
+!/Target/debug
+!/Target/release
+
+# Build outputs
+Configuration/
+.node_modules/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
