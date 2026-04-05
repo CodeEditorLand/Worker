@@ -37,32 +37,69 @@ Land
 </tr>
 </table>
 
-
 ---
 
 # **Worker**&#x2001;🍩
 
-> **Web applications that lose authentication state on network drops force users to re-authenticate. Tokens stored in plaintext are accessible to any script running on the page.**
+The Service Worker for Land 🏞️
+
+> **Web applications that lose authentication state on network drops force users
+> to re-authenticate. Tokens stored in plaintext are accessible to any script
+> running on the page.**
 
 _"Offline-capable. Auth tokens encrypted. Auto-refreshed."_
 
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](https://github.com/CodeEditorLand/Worker/tree/Current/LICENSE)
-[<img src="https://editor.land/Image/TypeScript.svg" width="14" alt="TypeScript" />](https://www.typescriptlang.org/)&#x2001;[![NPM Version](https://img.shields.io/npm/v/@codeeditorland/worker.svg)](https://www.npmjs.com/package/@codeeditorland/worker)
+[![NPM Version](https://img.shields.io/npm/v/@codeeditorland/worker.svg)](https://www.npmjs.com/package/@codeeditorland/worker)
 
-The editor shell stays functional and authenticated even when the network drops. Auth tokens are AES-GCM encrypted, requests are HMAC-signed, and tokens refresh automatically without user action. Caching, offline support, and dynamic CSS imports all managed through the Service Worker layer.
+Welcome to **Worker**, the Service Worker for the **Land Code Editor** that
+enhances web application performance and reliability through advanced caching,
+offline support, and a unique strategy for handling dynamic CSS imports from
+JavaScript modules.
+
+**Worker** is engineered to:
+
+1. **Implement Asset Caching:** Provide multiple caching strategies including
+   network-first for navigation and cache-first for static assets.
+2. **Enable Offline Support:** Allow the application shell and cached assets to
+   function without network connectivity.
+3. **Handle Dynamic CSS Loading:** Intercept JavaScript CSS imports and respond
+   with JavaScript modules that trigger standard `<link>` tag loading.
+4. **Support Automatic Updates:** Detect new Service Worker versions and prompt
+   clients to reload for seamless updates.
 
 ---
 
-## What It Does&#x2001;🔐
+## Key Features&#x2001;🔐
 
-- **AES-GCM encrypted auth.** Tokens stored with hardware-backed encryption, not plaintext.
-- **HMAC-signed requests.** Every request to backend Workers is cryptographically signed.
-- **Auto token refresh.** Tokens refresh automatically without user interaction.
-- **Offline support.** The editor shell works without a network connection.
+- **Asset Caching:** Implements multiple caching strategies:
+    - **Core Cache (`CACHE_CORE`):** Stores essential application shell files
+      and critical scripts (like `/Application/`, `Register.js`, `Load.js`).
+      Uses a **network-first** strategy for navigation requests to ensure users
+      get the latest page structure if online, falling back to the cache when
+      offline. Pre-caches essential assets on install.
+    - **Asset Cache (`CACHE_ASSET`):** Stores static application assets
+      (`/Static/Application/*`), including JavaScript, images, and the actual
+      CSS files. Uses a **cache-first** strategy for fast loading. Also stores
+      the dynamically generated JavaScript modules used for CSS loading.
+- **Offline Support:** Leverages the caches to allow the application shell and
+  cached assets to function offline.
+- **Dynamic CSS Loading:** Intercepts JavaScript `import` statements for
+  specific CSS files and responds with a JavaScript module that triggers the
+  loading of the actual CSS via a standard `<link>` tag.
+- **Automatic Updates:** Detects when a new version of the Service Worker is
+  activated and prompts the client (via `Register.js`) to reload the page,
+  ensuring the user gets the latest application version seamlessly.
+- **Client Control Management:** The `Register.js` script ensures the Service
+  Worker gains control of the page, potentially reloading the page once after
+  the initial registration if necessary.
 
 ---
 
-## In the Ecosystem&#x2001;🍩 + 🏞️
+## System Architecture Diagram&#x2001;🏗️
+
+This diagram illustrates `Worker`'s service worker caching and CSS loading
+strategy.
 
 ```mermaid
 graph LR
@@ -86,7 +123,7 @@ CoreCache -- Return cached or network --> SW
 
 Client -- Import *.css --> SW
 SW -- JS module response --> Client
-Client -- Create <link> --> Client
+Client -- Create link tag --> Client
 Client -- Fetch CSS --> SW
 SW -- Cache-first --> AssetCache
 AssetCache -- Return CSS --> SW
@@ -95,18 +132,110 @@ SW -- CSS applied --> Client
 
 ---
 
-## Development&#x2001;🛠️
+## Usage: Dynamic CSS Loading via JS Module Response&#x2001;🚀
 
-Worker is a component of the Land workspace. Follow the
-[Land Repository](https://github.com/CodeEditorLand/Land) instructions to
-build and run.
+This worker implements a specific strategy to handle dynamic CSS imports from
+JavaScript modules (e.g., `import './some-styles.css';`) located under the
+`/Static/Application/` path.
+
+**The Workflow:**
+
+1.  **Initial JS Import:** A JavaScript module attempts to import a CSS file
+    under `/Static/Application/` (e.g.,
+    `/Static/Application/CodeEditorLand/component.css`).
+2.  **Service Worker Intercept #1:** The worker's `fetch` listener intercepts
+    this request. Because the URL matches `/Static/Application/*.css` and
+    _doesn't_ contain the special `?Skip=Intercept` parameter, it proceeds with
+    the CSS handling logic.
+3.  **Service Worker Responds with JS:** The worker _immediately_ responds to
+    the fetch request with a dynamically generated JavaScript module:
+    ```javascript
+    window._LOAD_CSS_WORKER("/Static/Application/CodeEditorLand/component.css");
+    export default {};
+    ```
+    This JavaScript response is cached in `CACHE_ASSET` using the original CSS
+    request URL as the key.
+4.  **Browser Executes JS:** The browser receives and executes this JavaScript
+    module. The `export default {};` satisfies the expectation of the original
+    `import` statement.
+5.  **Client Function Call:** The executed JavaScript calls the globally
+    available `window._LOAD_CSS_WORKER` function (defined in `Load.js`).
+6.  **Client Modifies URL & Creates `<link>`:** The `_LOAD_CSS_WORKER` function
+    appends the `?Skip=Intercept` query parameter to the received CSS URL. It
+    then creates a standard `<link rel="stylesheet">` tag and appends it to
+    `<head>`.
+7.  **Browser Fetches CSS:** The browser sees the new `<link>` tag and initiates
+    a _second_ fetch request for the CSS file, this time with the
+    `?Skip=Intercept` parameter.
+8.  **Service Worker Intercept #2:** The worker intercepts this second request.
+9.  **Service Worker Serves CSS:** The worker detects the `?Skip=Intercept`
+    parameter, bypasses the JS generation logic, and fetches the _actual_ CSS
+    content using a **cache-first** strategy against `CACHE_ASSET`. It responds
+    with the real CSS content (`Content-Type: text/css`).
+10. **Browser Applies Styles:** The browser receives the actual CSS and applies
+    the styles.
+
+This two-step fetch process, distinguished by the `Skip=Intercept` parameter,
+allows the initial JavaScript import to resolve quickly while triggering the
+standard browser mechanism for loading the actual CSS without causing infinite
+interception loops.
 
 ---
 
-## License&#x2001;⚖️
+## Deep Dive & Component Breakdown&#x2001;🔬
 
-CC0 1.0 Universal. Public domain. No restrictions.
-[LICENSE](https://github.com/CodeEditorLand/Worker/tree/Current/LICENSE)
+To understand how `Worker`'s service worker implements the dynamic CSS loading
+strategy, see the following source files:
+
+- **[`Worker.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Worker.ts)** -
+  Main service worker with caching strategies
+- **[`Register.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Register.ts)** -
+  Service worker registration and update handling
+- **[`Load.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/CSS/Load.ts)** -
+  Client-side CSS loader function (`window._LOAD_CSS_WORKER`)
+
+---
+
+## HTML Integration Example
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!--
+      IMPORTANT: Load the CSS Loader script EARLY.
+      Defines window._LOAD_CSS_WORKER before main app script runs.
+    -->
+		<script src="/Worker/CSS/Load.js" type="module"></script>
+
+		<!--
+      Set the path to the Service Worker file.
+      Must come before Register.js.
+    -->
+		<script>
+			window._WORKER = "/Worker.js";
+		</script>
+
+		<!--
+      Register the Service Worker.
+      Handles registration, listens for updates, manages page control.
+      Registers with scope '/Application'.
+    -->
+		<script src="/Worker/Register.js" type="module"></script>
+	</head>
+
+	<body>
+		<!--
+      Load main application script LAST.
+      Any dynamic import '/Static/Application/some-component.css'
+      will trigger Service Worker interception.
+    -->
+		<script src="/scripts/main-app.js" type="module"></script>
+	</body>
+</html>
+```
+
+[Worker]: https://NPMJS.Org/@codeeditorland/worker
 
 ---
 
@@ -116,12 +245,33 @@ CC0 1.0 Universal. Public domain. No restrictions.
 - [Architecture Overview](https://editor.land/Doc/architecture)
 - [Mountain](https://github.com/CodeEditorLand/Mountain)
 
+---
 
-## Funding & Acknowledgements 🙏🏻
+## License&#x2001;⚖️
 
-Code Editor Land is funded through the NGI0 Commons Fund, established by NLnet
-with financial support from the European Commission's Next Generation Internet
-programme, under grant agreement No. 101135429.
+This project is released into the public domain under the **Creative Commons CC0
+Universal** license. You are free to use, modify, distribute, and build upon
+this work for any purpose, without any restrictions. For the full legal text,
+see the [`LICENSE`](https://github.com/CodeEditorLand/Worker/tree/Current/)
+file.
+
+---
+
+## Changelog&#x2001;📜
+
+Stay updated with our progress! See
+[`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/) for a
+history of changes specific to **Worker**.
+
+---
+
+## Funding \& Acknowledgements&#x2001;🙏🏻
+
+**Worker** is a core element of the **Land** ecosystem. This project is funded
+through [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
+[NLnet](https://NLnet.NL) with financial support from the European Commission's
+[Next Generation Internet](https://ngi.eu) program. Learn more at the
+[NLnet project page](https://NLnet.NL/project/Land).
 
 The project is operated by PlayForm, based in Sofia, Bulgaria.
 
