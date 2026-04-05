@@ -16,7 +16,7 @@
 
 		"outDir": "Target",
 
-		"rootDir": "Source",
+		"rootDir": "./Source",
 
 		"target": "ESNext"
 	},
