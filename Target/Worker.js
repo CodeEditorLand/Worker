@@ -1,1 +1,193 @@
-const _="PRODUCTION-01KNDJ05RXNTNCHX4D0SG3D70E";let l=null;const c=`Core-${_}`,i=`Asset-${_}`,h=[c,i],E=["/Application","/Worker/Policy.js","/Worker/Register.js","/Worker/CSS/Load.js"],g=new URLSearchParams(self.location.search).get("BASE_REMOTE")||self.location.origin;self.addEventListener("install",n=>{n.waitUntil(Promise.all([caches.open(c).then(e=>e.addAll(E)).catch(e=>!1)]).then(()=>self.skipWaiting()))});self.addEventListener("activate",n=>{n.waitUntil(Promise.all([caches.keys().then(e=>Promise.all(e.map(a=>h.includes(a)?Promise.resolve():caches.delete(a)))).catch(e=>Promise.resolve()),self.clients.claim().then(()=>{}).catch(e=>Promise.resolve())]).then(async()=>{if(l!==_)return l=_,(await self.clients.matchAll({type:"window"})).forEach(a=>{a.postMessage({Version:"New"})})}).catch(e=>!1))});self.addEventListener("fetch",n=>{const e=n.request,a=new URL(e.url),s=a.pathname,p=n.clientId;if(!(a.origin===self.origin&&s===new URL(self.location.href).pathname)&&e.method==="GET"){if(e.mode==="navigate"){n.respondWith((async()=>{try{const o=await fetch(e);if(o&&o.ok)return(await caches.open(c)).put(e,o.clone()),o}catch{}const r=await(await caches.open(c)).match(e);return r||new Response("Network error: You appear to be offline and the page is not cached.",{status:503,statusText:"Service Unavailable",headers:{"Content-Type":"text/plain"}})})());return}if(a.searchParams.has("Skip")&&a.searchParams.get("Skip")==="Intercept"){n.respondWith(caches.open(i).then(async r=>{const o=await r.match(e);if(o)return o;try{const t=await fetch(e);return t&&t.ok&&await r.put(e,t.clone()),t}catch{return new Response(`Failed to fetch ${s}`,{status:500})}}).catch(r=>fetch(e)));return}if(s.startsWith("/Static/Application/")&&s.endsWith(".css")){n.respondWith(caches.open(i).then(async r=>{const o=await r.match(e);if(o)return o;const t=new Response(`window._LOAD_CSS_WORKER('${s}'); export default {};`,{status:200,headers:{"Content-Type":"application/javascript; charset=utf-8"}});return await r.put(e,t.clone()),t}).catch(r=>new Response(`// Error intercepting CSS as JS ${s}`,{status:500,headers:{"Content-Type":"application/javascript"}})));return}if(s.startsWith("/Static/Application/")){n.respondWith(caches.open(i).then(async r=>{const o=await r.match(e);if(o)return o;try{const t=await fetch(e);return t&&t.ok&&await r.put(e,t.clone()),t||new Response(`Failed to fetch asset ${s} (no response)`,{status:504})}catch{return new Response(`Failed to fetch asset ${s} while offline`,{status:503})}}).catch(r=>fetch(e)));return}}});self.addEventListener("message",n=>{n.origin!==self.location.origin&&n.origin});var f={};export{f as default};
+const _ = "PRODUCTION-01KNDJ05RXNTNCHX4D0SG3D70E";
+let l = null;
+const c = `Core-${_}`,
+	i = `Asset-${_}`,
+	h = [c, i],
+	E = [
+		"/Application",
+		"/Worker/Policy.js",
+		"/Worker/Register.js",
+		"/Worker/CSS/Load.js",
+	],
+	g =
+		new URLSearchParams(self.location.search).get("BASE_REMOTE") ||
+		self.location.origin;
+self.addEventListener("install", (n) => {
+	n.waitUntil(
+		Promise.all([
+			caches
+				.open(c)
+				.then((e) => e.addAll(E))
+				.catch((e) => !1),
+		]).then(() => self.skipWaiting()),
+	);
+});
+self.addEventListener("activate", (n) => {
+	n.waitUntil(
+		Promise.all([
+			caches
+				.keys()
+				.then((e) =>
+					Promise.all(
+						e.map((a) =>
+							h.includes(a)
+								? Promise.resolve()
+								: caches.delete(a),
+						),
+					),
+				)
+				.catch((e) => Promise.resolve()),
+			self.clients
+				.claim()
+				.then(() => {})
+				.catch((e) => Promise.resolve()),
+		])
+			.then(async () => {
+				if (l !== _)
+					return (
+						(l = _),
+						(
+							await self.clients.matchAll({ type: "window" })
+						).forEach((a) => {
+							a.postMessage({ Version: "New" });
+						})
+					);
+			})
+			.catch((e) => !1),
+	);
+});
+self.addEventListener("fetch", (n) => {
+	const e = n.request,
+		a = new URL(e.url),
+		s = a.pathname,
+		p = n.clientId;
+	if (
+		!(
+			a.origin === self.origin &&
+			s === new URL(self.location.href).pathname
+		) &&
+		e.method === "GET"
+	) {
+		if (e.mode === "navigate") {
+			n.respondWith(
+				(async () => {
+					try {
+						const o = await fetch(e);
+						if (o && o.ok)
+							return (
+								(await caches.open(c)).put(e, o.clone()),
+								o
+							);
+					} catch {}
+					const r = await (await caches.open(c)).match(e);
+					return (
+						r ||
+						new Response(
+							"Network error: You appear to be offline and the page is not cached.",
+							{
+								status: 503,
+								statusText: "Service Unavailable",
+								headers: { "Content-Type": "text/plain" },
+							},
+						)
+					);
+				})(),
+			);
+			return;
+		}
+		if (
+			a.searchParams.has("Skip") &&
+			a.searchParams.get("Skip") === "Intercept"
+		) {
+			n.respondWith(
+				caches
+					.open(i)
+					.then(async (r) => {
+						const o = await r.match(e);
+						if (o) return o;
+						try {
+							const t = await fetch(e);
+							return (
+								t && t.ok && (await r.put(e, t.clone())),
+								t
+							);
+						} catch {
+							return new Response(`Failed to fetch ${s}`, {
+								status: 500,
+							});
+						}
+					})
+					.catch((r) => fetch(e)),
+			);
+			return;
+		}
+		if (s.startsWith("/Static/Application/") && s.endsWith(".css")) {
+			n.respondWith(
+				caches
+					.open(i)
+					.then(async (r) => {
+						const o = await r.match(e);
+						if (o) return o;
+						const t = new Response(
+							`window._LOAD_CSS_WORKER('${s}'); export default {};`,
+							{
+								status: 200,
+								headers: {
+									"Content-Type":
+										"application/javascript; charset=utf-8",
+								},
+							},
+						);
+						return (await r.put(e, t.clone()), t);
+					})
+					.catch(
+						(r) =>
+							new Response(
+								`// Error intercepting CSS as JS ${s}`,
+								{
+									status: 500,
+									headers: {
+										"Content-Type":
+											"application/javascript",
+									},
+								},
+							),
+					),
+			);
+			return;
+		}
+		if (s.startsWith("/Static/Application/")) {
+			n.respondWith(
+				caches
+					.open(i)
+					.then(async (r) => {
+						const o = await r.match(e);
+						if (o) return o;
+						try {
+							const t = await fetch(e);
+							return (
+								t && t.ok && (await r.put(e, t.clone())),
+								t ||
+									new Response(
+										`Failed to fetch asset ${s} (no response)`,
+										{ status: 504 },
+									)
+							);
+						} catch {
+							return new Response(
+								`Failed to fetch asset ${s} while offline`,
+								{ status: 503 },
+							);
+						}
+					})
+					.catch((r) => fetch(e)),
+			);
+			return;
+		}
+	}
+});
+self.addEventListener("message", (n) => {
+	n.origin !== self.location.origin && n.origin;
+});
+var f = {};
+export { f as default };
