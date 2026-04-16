@@ -187,7 +187,7 @@ interception loops.
 To understand how `Worker`'s service worker implements the dynamic CSS loading
 strategy, see the following source files:
 
-- **[`Worker.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Worker.ts)** -
+- **[`Policy.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Policy.ts)** -
   Main service worker with caching strategies
 - **[`Register.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Register.ts)** -
   Service worker registration and update handling
