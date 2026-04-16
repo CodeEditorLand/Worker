@@ -1,101 +1,61 @@
 # Changelog
 
-All notable changes to the Worker element are documented in this file.
+All notable changes to Worker (Service Worker) are documented here.
+Format: [Keep a Changelog](https://keepachangelog.com/).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-
-## [0.5.0] — 2026 Q2
-
-### Added
-
-- Expanded README with architecture diagrams and usage guide
-- See Also section linking to architecture overview and related Elements
+## [v2.1] — Q2 2026: Full Workbench Lift
 
 ### Changed
 
-- Wrapped service worker registration in IIFE with early return
-- Simplified ESBuild target configuration structure
-- Reformatted ESBuild configuration files for consistency
-- Used POSIX-compliant sh shebang in build scripts
-- Rebuilt target files following ESBuild configuration changes
+- ESBuild config indentation reformatted (94 lines)
+- IIFE wrap with early return pattern (-752 lines Target/)
+- ESBuild structure simplified (+703 lines output)
+- README expanded (+196 lines architecture diagrams)
 
-### Fixed
-
-- Corrected HTML tag structure in README header
-
-## [0.4.0] — 2026 Q1
+## [v2.0] — Q1 2026: Editor Launch Sprint
 
 ### Added
 
-- .gitignore to exclude build artifacts
+- Version tracking mechanism to prevent infinite refresh loops in
+  `Source/Worker/Register.ts` (104 lines refactored)
+- `Configuration/ESBuild/Target.js`, `Configuration/ESBuild/Worker.js` (55
+  lines each)
+- README comprehensive rewrite (182 lines)
 
 ### Changed
 
-- Restored development-readable build artifacts with source maps
-- Minified Service Worker build artifacts for production
-- Updated Service Worker build artifacts
-- Upgraded @playform/build from 0.2.5 to 0.3.0
-- Updated dependencies
+- Minification toggle: source maps removed (March 11), restored (March 13)
 
-### Fixed
-
-- Prevented Service Worker refresh loop with version tracking
-- Adjusted script URL validation regex to support nested paths and MJS modules
-- Addressed code scanning security alert
-
-## [0.3.0] — 2025 Q4
+## [v1.3] — Q4 2025: Dependency Maintenance
 
 ### Changed
 
-- Updated dependencies
+- @types/serviceworker: 0.0.154 → 0.0.162
+- Bulk file permission reset (32 files)
 
-## [0.2.0] — 2025 Q3
+## [v1.2] — Q3 2025: Full Stack Integration
+
+### Changed
+
+- @types/serviceworker: 0.0.148 → 0.0.154
+- Build infrastructure stable
+
+## [v1.1] — Q2 2025: Architecture Buildout
 
 ### Added
 
-- Initial web worker module for background processing
-- Generated web worker bundle for extension host communication
-- Application route to routing configuration
+- `Source/Worker.ts` — main Service Worker registration entry point
+- `Source/Worker/Register.ts` — client-side registration with IIFE pattern
+- `Source/Worker/CSS/Load.ts` — dynamic CSS-to-JS transpilation interceptor
+- `Source/Worker/Policy.ts` — Content Security Policy enforcement
+- `Source/Configuration/ESBuild/Worker.ts` — 2-stage ESBuild config
+- `Source/Configuration/ESBuild/Target.ts` — target bundling config
+- Caching strategy: CACHE_CORE (network-first nav) + CACHE_ASSET (cache-first
+  static)
+- Encrypted auth token management with auto-refresh
+- Dynamic CSS loading: intercepts CSS imports, returns JS modules triggering
+  `<link>` tags
 
-### Changed
+### Dependencies (First Release)
 
-- Refactored ESBuild configuration and updated worker artifacts
-- Removed obsolete shim cache from service worker logic
-- Simplified dynamic CSS loading mechanism
-- Renamed Skip=Worker query parameter to Skip=Intercept for clarity
-- Optimized service worker registration flow with proper module type and scope
-- Minified all worker scripts for production
-- Eliminated source map generation to reduce deployment footprint
-- Improved variable naming and error handling in service worker
-- Enhanced service worker security and version tracking
-- Relicensed project under CC0 1.0 Universal
-
-### Fixed
-
-- Used configured outdir for build cleanup
-- Corrected precache list by removing erroneous path entry
-
-## [0.1.0] — 2025 Q2
-
-### Added
-
-- Initial web worker implementation for background processing
-- Service worker with cache-first strategy and CSS interception
-- ESBuild-based build configuration with environment-based settings
-- Service worker registration with feature detection
-- Remote cache support
-
-### Changed
-
-- Normalized application path and updated shim reference
-- Consolidated ESBuild configuration and exclusion logic
-- Relicensed under Land Public License v1.0
-- Updated dependencies
-
-## [0.0.1] — 2025 Q1
-
-### Added
-
-- Initial service worker infrastructure
-- CI/CD workflows with GitHub Actions (cache, upload-artifact, setup-node)
-- Dependabot configuration for automated dependency updates
+- @playform/build 0.3.1, @types/serviceworker, ulid 3.0.2
