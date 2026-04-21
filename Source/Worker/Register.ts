@@ -234,17 +234,24 @@ void ((): void => {
 					sessionStorage.removeItem(Reload);
 				}
 			}
-
-			if (document.readyState === "loading") {
-				__DEV__ && Log("DOM not ready, deferring SW registration.");
-
-				document.addEventListener("DOMContentLoaded", Control);
-			} else {
-				__DEV__ && Log("DOM ready, running SW registration now.");
-
-				Control();
-			}
 		};
+
+		// Kick off the registration at block scope — NOT from inside
+		// `Control` itself. Previously this scheduler sat inside Control's
+		// body, which meant nothing ever invoked Control the first time:
+		// the bare block just declared Control and exited, leaving it
+		// unreferenced. Tree-shakers correctly eliminated the whole
+		// registration pathway from the bundle, leaving only the
+		// "not supported" warning branch visible in the shipped JS.
+		if (document.readyState === "loading") {
+			__DEV__ && Log("DOM not ready, deferring SW registration.");
+
+			document.addEventListener("DOMContentLoaded", Control);
+		} else {
+			__DEV__ && Log("DOM ready, running SW registration now.");
+
+			Control();
+		}
 	}
 })();
 

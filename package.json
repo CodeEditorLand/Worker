@@ -18,6 +18,7 @@
 		"url": "https://Editor.Land"
 	},
 	"type": "module",
+	"sideEffects": true,
 	"scripts": {
 		"Run": "sh Source/Run.sh",
 		"prepublishOnly": "sh Source/prepublishOnly.sh"
