@@ -236,7 +236,7 @@ void ((): void => {
 			}
 		};
 
-		// Kick off the registration at block scope — NOT from inside
+		// Kick off the registration at block scope - NOT from inside
 		// `Control` itself. Previously this scheduler sat inside Control's
 		// body, which meant nothing ever invoked Control the first time:
 		// the bare block just declared Control and exited, leaving it
