@@ -15,15 +15,17 @@ const CACHE_ASSET = `Asset-${INCREMENT}`;
 
 const CACHE = [CACHE_CORE, CACHE_ASSET];
 
-const CORE_PRECACHE = [
-	"/Application",
-
-	"/Worker/Policy.js",
-
-	"/Worker/Register.js",
-
-	"/Worker/CSS/Load.js",
-];
+// `/Application` is the SW scope itself - the workbench is reached via
+// SPA fallback, no need to precache an explicit asset for it. The other
+// three entries are pre-bundle paths; under Vite/Astro the `Worker/*.js`
+// scripts are inlined into a single hashed `_astro/WorkerBundleImports.
+// astro_*.js` chunk and the standalone `/Worker/*.js` URLs no longer
+// exist on disk. Keeping them in `cache.addAll(...)` made every install
+// emit `[Worker] Core Precaching failed: TypeError: Failed to fetch`
+// AND polluted Mountain.log with three SPA-fallback DEBUG triplets per
+// boot. Drop the list - the runtime fetch handler caches assets on
+// demand.
+const CORE_PRECACHE: ReadonlyArray<string> = [];
 
 const BASE_REMOTE =
 	new URLSearchParams(self.location.search).get("BASE_REMOTE") ||
