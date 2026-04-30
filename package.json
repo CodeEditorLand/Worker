@@ -25,7 +25,7 @@
 	},
 	"devDependencies": {
 		"@playform/build": "0.3.1",
-		"@types/serviceworker": "0.0.195",
+		"@types/serviceworker": "0.0.196",
 		"@types/trusted-types": "2.0.7",
 		"ulid": "3.0.2"
 	},
