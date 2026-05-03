@@ -67,8 +67,23 @@ const WarnLog = __DEV__
 		}
 	: () => {};
 
+// Telemetry bridge - lazy load so prod bundle drops it via __DEV__ tree-shake.
+let WorkerTelemetry: typeof import("./Telemetry/Bridge.js") | undefined;
+if (__DEV__) {
+	void import("./Telemetry/Bridge.js")
+		.then((Module) => {
+			WorkerTelemetry = Module;
+			Module.Initialize();
+		})
+		.catch(() => {});
+}
+
 self.addEventListener("install", (Event) => {
 	__DEV__ && Log(`Installing version ${INCREMENT}...`);
+	__DEV__ &&
+		WorkerTelemetry?.CaptureEvent("land:worker:install", {
+			increment: INCREMENT,
+		});
 
 	Event.waitUntil(
 		Promise.all([
@@ -95,6 +110,10 @@ self.addEventListener("install", (Event) => {
 
 self.addEventListener("activate", (Event) => {
 	__DEV__ && Log(`Activating version ${INCREMENT}...`);
+	__DEV__ &&
+		WorkerTelemetry?.CaptureEvent("land:worker:activate", {
+			increment: INCREMENT,
+		});
 
 	Event.waitUntil(
 		Promise.all([

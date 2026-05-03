@@ -17,8 +17,8 @@
 		"email": "Source/Open@Editor.Land",
 		"url": "https://Editor.Land"
 	},
-	"type": "module",
 	"sideEffects": true,
+	"type": "module",
 	"scripts": {
 		"Run": "sh Source/Run.sh",
 		"prepublishOnly": "sh Source/prepublishOnly.sh"
