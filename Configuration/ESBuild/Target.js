@@ -1,1 +1,23 @@
-const i=(await import("./Worker.js")).On;var o=async t=>(await import("deepmerge-ts")).deepmerge((await import("./Worker.js")).default,{outdir:"Target",drop:i?[]:["debugger","console"],define:{__DEV__:i?"true":"false",__INCREMENT__:`"${`${i?"DEVELOPMENT":"PRODUCTION"}-${(await import("ulid")).ulid()}`}"`},treeShaking:!i,entryPoints:(await import("@playform/build/Target/Function/Entry.js")).default(t,["Source/Configuration/*"]),platform:"browser",outbase:"Source",logOverride:{"suspicious-logical-operator":"silent"}});export{i as On,o as default};
+const i = (await import("./Worker.js")).On;
+
+var o = async (t) =>
+	(await import("deepmerge-ts")).deepmerge(
+		(await import("./Worker.js")).default,
+
+		{
+			outdir: "Target",
+			drop: i ? [] : ["debugger", "console"],
+			define: {
+				__DEV__: i ? "true" : "false",
+				__INCREMENT__: `"${`${i ? "DEVELOPMENT" : "PRODUCTION"}-${(await import("ulid")).ulid()}`}"`,
+			},
+			treeShaking: !i,
+			entryPoints: (
+				await import("@playform/build/Target/Function/Entry.js")
+			).default(t, ["Source/Configuration/*"]),
+			platform: "browser",
+			outbase: "Source",
+			logOverride: { "suspicious-logical-operator": "silent" },
+		},
+	);
+export { i as On, o as default };
