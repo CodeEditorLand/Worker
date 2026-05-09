@@ -47,12 +47,15 @@ const Brand = ReadEnv("Brand", "");
 
 const ResolveDistinctIdentifier = (): string => {
 	if (Brand.length > 0) return Brand;
+
 	return "land-dev-worker-shared";
 };
 
 const RandomHex = (Bytes: number): string => {
 	const Buf = new Uint8Array(Bytes);
+
 	crypto.getRandomValues(Buf);
+
 	return Array.from(Buf, (B) => B.toString(16).padStart(2, "0")).join("");
 };
 
@@ -60,15 +63,19 @@ let TraceIdentifierCached: string | undefined;
 
 export const TraceIdentifier = (): string => {
 	if (!TraceIdentifierCached) TraceIdentifierCached = RandomHex(16);
+
 	return TraceIdentifierCached;
 };
 
 export const CaptureEvent = (
 	Name: string,
+
 	Properties: Properties = {},
 ): void => {
 	if (!PostHogEnabled || !__DEV__) return;
+
 	if (!Authorize) return;
+
 	const Body = JSON.stringify({
 		api_key: Authorize,
 		event: Name,
@@ -85,6 +92,7 @@ export const CaptureEvent = (
 			...Properties,
 		},
 	});
+
 	void fetch(`${Beam}/capture/`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -95,16 +103,25 @@ export const CaptureEvent = (
 
 export const CaptureSpan = (
 	Name: string,
+
 	StartMs: number,
+
 	EndMs: number,
+
 	Attributes: ReadonlyArray<readonly [string, string]> = [],
 ): void => {
 	if (!OTLPEnabled || !__DEV__) return;
+
 	const SpanIdentifier = RandomHex(8);
+
 	const TraceIdentifierResolved = TraceIdentifier();
+
 	const StatusCode = Name.includes("error") ? 2 : 1;
+
 	const StartNano = String(BigInt(Math.floor(StartMs)) * 1_000_000n);
+
 	const EndNano = String(BigInt(Math.floor(EndMs)) * 1_000_000n);
+
 	const Body = JSON.stringify({
 		resourceSpans: [
 			{
@@ -144,6 +161,7 @@ export const CaptureSpan = (
 			},
 		],
 	});
+
 	void fetch(`${OTLPEndpoint.replace(/\/$/, "")}/v1/traces`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },

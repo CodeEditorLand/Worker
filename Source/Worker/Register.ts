@@ -61,6 +61,7 @@ void ((): void => {
 			__DEV__ &&
 				Log(
 					"Service Worker update check:",
+
 					Update ? "Update found" : "Up to date",
 				);
 
