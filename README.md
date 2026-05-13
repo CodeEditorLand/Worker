@@ -70,6 +70,35 @@ JavaScript modules.
 
 ---
 
+## Project Structure&#x2001;🗺️
+
+```
+Worker/
+├── Source/
+│   ├── Worker.ts                # Service worker entry: caching strategies, interception logic.
+│   ├── Worker/
+│   │   ├── Policy.ts            # Cache policies (network-first, cache-first, stale-while-revalidate).
+│   │   ├── Register.ts          # Service worker registration, update detection, activation.
+│   │   └── CSS/
+│   │       └── Load.ts          # Client-side CSS loader (`window._LOAD_CSS_WORKER`).
+│   ├── Configuration/
+│   │   └── ESBuild/             # ESBuild build configuration and target definitions.
+│   ├── Telemetry/
+│   │   └── Bridge.ts            # PostHog telemetry bridge for worker-level error reporting.
+│   ├── prepublishOnly.sh        # Build orchestration script.
+│   └── Run.sh                   # Development watch mode.
+```
+
+---
+
+## Getting Started&#x2001;🚀
+
+`Worker` is developed as a core component of the main **Land**&#x2001;🏞️
+project. To build or run `Worker`, follow the instructions in the main
+[`Land` Repository README](https://github.com/CodeEditorLand/Land).
+
+---
+
 ## Key Features&#x2001;🔐
 
 - **Asset Caching:** Implements multiple caching strategies:
