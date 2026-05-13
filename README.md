@@ -41,11 +41,11 @@ Land
 
 # **Worker**&#x2001;🍩
 
-The Service Worker for Land 🏞️
+The Service Worker for Land&#x2001;🏞️
 
-> **Web applications that lose authentication state on network drops force users
-> to re-authenticate. Tokens stored in plaintext are accessible to any script
-> running on the page.**
+> **`Web` applications that lose authentication state on network drops force
+> users to re-authenticate. Tokens stored in plaintext are accessible to any
+> script running on the page.**
 
 _"Offline-capable. Auth tokens encrypted. Auto-refreshed."_
 
