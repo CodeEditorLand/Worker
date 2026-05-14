@@ -93,9 +93,9 @@ Worker/
 
 ## Getting Started&#x2001;🚀
 
-`Worker` is developed as a core component of the main **Land**&#x2001;🏞️
-project. To build or run `Worker`, follow the instructions in the main
-[`Land` Repository README](https://github.com/CodeEditorLand/Land).
+`Worker` is built as part of the main **Land**&#x2001;🏞️ project. Build
+instructions are documented in
+[`Documentation/GitHub/Building.md`](https://github.com/CodeEditorLand/Land/tree/Current/Documentation/GitHub/Building.md).
 
 ---
 
