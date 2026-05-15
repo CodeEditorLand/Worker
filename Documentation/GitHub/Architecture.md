@@ -19,6 +19,32 @@ intercepts JS imports of CSS files and responds with JS modules that trigger
 
 ---
 
+```mermaid
+graph TB
+    subgraph Worker["Service Worker"]
+        SW["Worker/Worker.ts<br/>Main SW script<br/>fetch interception"]
+
+        subgraph CACHE["Caching Strategy"]
+            CC["CACHE_CORE<br/>Network-first<br/>HTML pages"]
+            CA["CACHE_ASSET<br/>Cache-first (7d)<br/>JS / CSS / fonts"]
+            CE["CACHE_EXT<br/>Cache-first (24h)<br/>extension assets"]
+        end
+
+        CSS["Worker/CSS/<br/>CSS Import Interceptor<br/>JS proxy -> &lt;link&gt;"]
+        POL["Worker/Policy.ts<br/>Cache policy defs"]
+        REG["Worker/Register.ts<br/>Registration + update"]
+        TEL["Telemetry/Bridge.ts<br/>SW telemetry"]
+    end
+
+    SW -->|"route fetch"| CACHE
+    SW --> CSS
+    CACHE --> POL
+    REG -->|"registers"| SW
+    TEL -.->|"metrics"| SW
+    SKY["Sky"] -->|"navigator.serviceWorker.register"| REG
+    CSS -->|"?Skip=Intercept"| BROWSER["Browser &lt;link&gt; loading"]
+```
+
 ## Overview
 
 Worker is a standalone service worker script with no runtime dependencies. It
