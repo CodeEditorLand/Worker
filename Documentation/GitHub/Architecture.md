@@ -1,9 +1,11 @@
-# Worker: Service Worker
+# Worker: Service Worker 🍩
 
-This document describes Worker, the service worker for Land. Worker implements
-asset caching, offline support, and a dynamic CSS loading strategy. It
-intercepts JS imports of CSS files and responds with JS modules that trigger
-`<link>` tag loading.
+This document describes `Worker`, the service worker for `Land`.
+
+- `Worker` implements asset caching and offline support.
+- It implements a dynamic CSS loading strategy.
+- It intercepts JS imports of CSS files.
+- It responds with JS modules that trigger `<link>` tag loading.
 
 ---
 
@@ -45,22 +47,24 @@ graph TB
     CSS -->|"?Skip=Intercept"| BROWSER["Browser &lt;link&gt; loading"]
 ```
 
-## Overview
+## Overview 📋
 
-Worker is a standalone service worker script with no runtime dependencies. It
-provides caching for Land's UI assets and implements a custom CSS import
-interceptor. It is registered by Sky at application startup.
+`Worker` is a standalone service worker script with no runtime dependencies.
 
-| Attribute    | Value                                |
-| ------------ | ------------------------------------ |
-| Language     | TypeScript (compiled via ESBuild)    |
-| Runtime      | ServiceWorker API (browser built-in) |
-| Dependencies | None (zero runtime deps)             |
-| Consumed by  | Sky (registered at startup)          |
+- It provides caching for `Land`'s UI assets.
+- It implements a custom CSS import interceptor.
+- It is registered by `Sky` at application startup.
+
+| Attribute    | Value                                  |
+| ------------ | -------------------------------------- |
+| Language     | `TypeScript` (compiled via `ESBuild`)  |
+| Runtime      | `ServiceWorker` API (browser built-in) |
+| Dependencies | None (zero runtime deps)               |
+| Consumed by  | `Sky` (registered at startup)          |
 
 ---
 
-## Architecture
+## Architecture 🏗️
 
 ```
 +------------------------------------------------------------------+
@@ -81,7 +85,7 @@ interceptor. It is registered by Sky at application startup.
 +------------------------------------------------------------------+
 ```
 
-### Module Map
+### Module Map 🗺️
 
 | Path                         | Purpose                            |
 | ---------------------------- | ---------------------------------- |
@@ -93,9 +97,9 @@ interceptor. It is registered by Sky at application startup.
 
 ---
 
-## Caching Strategy
+## Caching Strategy 💾
 
-Worker implements a multi-tier caching strategy for different resource types:
+`Worker` implements a multi-tier caching strategy for different resource types.
 
 ### Cache Categories
 
@@ -146,9 +150,9 @@ Request static asset (JS, CSS)
 
 ---
 
-## Dynamic CSS Loading
+## Dynamic CSS Loading 🎨
 
-Worker implements a unique CSS loading strategy: JavaScript modules that
+`Worker` implements a unique CSS loading strategy: JavaScript modules that
 `import 'styles.css'` are intercepted and served a JS proxy that injects a
 `<link>` element.
 
@@ -181,8 +185,8 @@ CSS loads via native browser <link> element
 
 ### Two-Phase Loading
 
-To avoid infinite interception (where Worker intercepts the CSS URL, returns JS,
-JS triggers a new CSS fetch that gets intercepted again), Worker uses a
+To avoid infinite interception (where `Worker` intercepts the CSS URL, returns
+JS, JS triggers a new CSS fetch that gets intercepted again), `Worker` uses a
 `?Skip=Intercept` query parameter:
 
 ```
@@ -209,7 +213,7 @@ Phase 2: Browser loads styles.css?Skip=Intercept
 
 ---
 
-## Service Worker Lifecycle
+## Service Worker Lifecycle 🔄
 
 ### Installation
 
@@ -267,9 +271,9 @@ Phase 2: Browser loads styles.css?Skip=Intercept
 
 ---
 
-## Client Scripts
+## Client Scripts 📜
 
-Worker provides client-side scripts for integration:
+`Worker` provides client-side scripts for integration.
 
 ### Register.ts
 
@@ -300,15 +304,16 @@ export async function registerWorker(): Promise<ServiceWorkerRegistration> {
 
 ---
 
-## Related Documentation
+## Related Documentation 📚
 
-- [Sky](../Sky/Documentation/GitHub/Architecture.md) - UI layer (Worker
-  consumer)
-- [Wind](../Wind/Documentation/GitHub/Architecture.md) - Service layer (Worker
-  integration)
-- [BuildPipeline](../../../Documentation/GitHub/BuildPipeline.md) - Build
-  pipeline
-- [Polyfills](../../../Documentation/GitHub/Polyfills.md) - Polyfill layers
+- [Sky](https://github.com/CodeEditorLand/Sky/tree/Current/Documentation/GitHub/Architecture.md) -
+  UI layer (`Worker` consumer)
+- [Wind](https://github.com/CodeEditorLand/Wind/tree/Current/Documentation/GitHub/Architecture.md) -
+  Service layer (`Worker` integration)
+- [BuildPipeline](https://github.com/CodeEditorLand/Land/tree/Current/Documentation/GitHub/BuildPipeline.md) -
+  Build pipeline
+- [Polyfills](https://github.com/CodeEditorLand/Land/tree/Current/Documentation/GitHub/Polyfills.md) -
+  Polyfill layers
 
 ---
 
