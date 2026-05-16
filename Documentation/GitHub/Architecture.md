@@ -1,4 +1,4 @@
-# Worker: Service Worker 🍩
+# Worker: Service Worker 🍩
 
 This document describes `Worker`, the service worker for `Land`.
 
@@ -47,7 +47,7 @@ graph TB
     CSS -->|"?Skip=Intercept"| BROWSER["Browser &lt;link&gt; loading"]
 ```
 
-## Overview 📋
+## Overview 📋
 
 `Worker` is a standalone service worker script with no runtime dependencies.
 
@@ -64,7 +64,7 @@ graph TB
 
 ---
 
-## Architecture 🏗️
+## Architecture 🏗️
 
 ```
 +------------------------------------------------------------------+
@@ -85,7 +85,7 @@ graph TB
 +------------------------------------------------------------------+
 ```
 
-### Module Map 🗺️
+### Module Map 🗺️
 
 | Path                         | Purpose                            |
 | ---------------------------- | ---------------------------------- |
@@ -97,7 +97,7 @@ graph TB
 
 ---
 
-## Caching Strategy 💾
+## Caching Strategy 💾
 
 `Worker` implements a multi-tier caching strategy for different resource types.
 
@@ -150,7 +150,7 @@ Request static asset (JS, CSS)
 
 ---
 
-## Dynamic CSS Loading 🎨
+## Dynamic CSS Loading 🎨
 
 `Worker` implements a unique CSS loading strategy: JavaScript modules that
 `import 'styles.css'` are intercepted and served a JS proxy that injects a
@@ -213,7 +213,7 @@ Phase 2: Browser loads styles.css?Skip=Intercept
 
 ---
 
-## Service Worker Lifecycle 🔄
+## Service Worker Lifecycle 🔄
 
 ### Installation
 
@@ -271,7 +271,7 @@ Phase 2: Browser loads styles.css?Skip=Intercept
 
 ---
 
-## Client Scripts 📜
+## Client Scripts 📜
 
 `Worker` provides client-side scripts for integration.
 
@@ -304,7 +304,7 @@ export async function registerWorker(): Promise<ServiceWorkerRegistration> {
 
 ---
 
-## Related Documentation 📚
+## Related Documentation 📚
 
 - [Sky](https://github.com/CodeEditorLand/Sky/tree/Current/Documentation/GitHub/Architecture.md) -
   UI layer (`Worker` consumer)
