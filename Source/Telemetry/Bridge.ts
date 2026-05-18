@@ -82,7 +82,7 @@ export const CaptureEvent = (
 		timestamp: new Date().toISOString(),
 		distinct_id: ResolveDistinctIdentifier(),
 		properties: {
-			$app: "land-editor",
+			$app: "fiddee",
 			$app_version: "0.0.1",
 			$build_mode: "debug",
 			$component: "worker",
