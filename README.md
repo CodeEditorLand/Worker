@@ -132,31 +132,38 @@ strategy.
 
 ```mermaid
 graph LR
-classDef worker fill:#f9f,stroke:#333,stroke-width:2px;
-classDef client fill:#9cf,stroke:#333,stroke-width:2px;
-classDef cache fill:#cfc,stroke:#333,stroke-width:1px;
+    classDef worker fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+    classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef cache  fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
+    classDef sky    fill:#9cf,stroke:#2471a3,stroke-width:1px,stroke-dasharray:5 5,color:#001040;
 
-subgraph "Client (Browser)"
-Client["Client Application"]:::client
-end
+    subgraph SKY["Sky 🌌 - Astro Page (Tauri WebView)"]
+        HTMLPage["index.astro\nloads Load.js + Register.js"]:::sky
+        MainApp["workbench JS\n(dynamic CSS imports)"]:::sky
+    end
 
-subgraph "Service Worker"
-SW["Service Worker"]:::worker
-CoreCache["CACHE_CORE"]:::cache
-AssetCache["CACHE_ASSET"]:::cache
-end
+    subgraph SW["Worker 🍩 - Service Worker (Worker.ts / Policy.ts)"]
+        direction TB
+        Register["Register.ts\nregistration + update detection\nscope /Application"]:::worker
+        Policy["Policy.ts\nfetch event handler\nroutes by URL pattern"]:::worker
+        subgraph CACHES["Cache Storage"]
+            CoreCache["CACHE_CORE\nnetwork-first\n/Application/ navigation"]:::cache
+            AssetCache["CACHE_ASSET\ncache-first\n/Static/Application/* CSS + JS"]:::cache
+        end
+        CSSLoad["Worker/CSS/Load.ts\nwindow._LOAD_CSS_WORKER\nclient-side link tag injector"]:::worker
 
-Client -- Fetch /Application/ --> SW
-SW -- Network-first --> CoreCache
-CoreCache -- Return cached or network --> SW
+        Register --> Policy
+        Policy --> CoreCache
+        Policy --> AssetCache
+        CSSLoad --> AssetCache
+    end
 
-Client -- Import *.css --> SW
-SW -- JS module response --> Client
-Client -- Create link tag --> Client
-Client -- Fetch CSS --> SW
-SW -- Cache-first --> AssetCache
-AssetCache -- Return CSS --> SW
-SW -- CSS applied --> Client
+    HTMLPage -- registers --> Register
+    HTMLPage -- defines _LOAD_CSS_WORKER --> CSSLoad
+    MainApp -- import .css --> Policy
+    Policy -- JS module response\nexport default + _LOAD_CSS_WORKER call --> MainApp
+    MainApp -- link rel=stylesheet\nURL?Skip=Intercept --> Policy
+    Policy -- cache-first real CSS --> MainApp
 ```
 
 ---
