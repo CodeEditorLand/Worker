@@ -7,7 +7,7 @@
  *
  * Build-baked endpoint + key from `import.meta.env` injected by the
  * astro/Vite pipeline that bundles the worker bundle. Honors
- * `Capture` master kill + `Report` / `OTLPEnabled` per-pipe toggles.
+ * `Capture` master kill + `Report` / `Emit` per-pipe toggles.
  *
  * Exports:
  *   CaptureEvent(name, properties) - PostHog `/capture/`
@@ -34,14 +34,13 @@ const TelemetryCaptureEnabled = ReadEnv("Capture", "true") !== "false";
 const PostHogEnabled =
 	TelemetryCaptureEnabled && ReadEnv("Report", "true") !== "false";
 
-const OTLPEnabled =
-	TelemetryCaptureEnabled && ReadEnv("OTLPEnabled", "true") !== "false";
+const Emit = TelemetryCaptureEnabled && ReadEnv("Emit", "true") !== "false";
 
 const Authorize = ReadEnv("Authorize", "");
 
 const Beam = ReadEnv("Beam", "https://eu.i.posthog.com");
 
-const OTLPEndpoint = ReadEnv("OTLPEndpoint", "http://127.0.0.1:4318");
+const Pipe = ReadEnv("Pipe", "http://127.0.0.1:4318");
 
 const Brand = ReadEnv("Brand", "");
 
@@ -110,7 +109,7 @@ export const CaptureSpan = (
 
 	Attributes: ReadonlyArray<readonly [string, string]> = [],
 ): void => {
-	if (!OTLPEnabled || !__DEV__) return;
+	if (!Emit || !__DEV__) return;
 
 	const SpanIdentifier = RandomHex(8);
 
@@ -162,7 +161,7 @@ export const CaptureSpan = (
 		],
 	});
 
-	void fetch(`${OTLPEndpoint.replace(/\/$/, "")}/v1/traces`, {
+	void fetch(`${Pipe.replace(/\/$/, "")}/v1/traces`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: Body,
