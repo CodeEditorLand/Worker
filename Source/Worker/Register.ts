@@ -47,6 +47,7 @@ const WarnLog = __DEV__
 void ((): void => {
 	if (!("serviceWorker" in navigator)) {
 		__DEV__ && WarnLog("Service Worker API not supported.");
+
 		return;
 	}
 
