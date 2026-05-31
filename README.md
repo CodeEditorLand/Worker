@@ -1,40 +1,44 @@
 <table>
-<tr>
-<td align="left" valign="middle">
-<h3 align="left"> Worker</h3>
-</td>
-<td align="left" valign="middle">
-<h3 align="left">
-&#x2001;🍩
-</h3>
-</td>
-<td align="left" valign="middle">
-<h3 align="left"> + </h3>
-</td>
-<td align="left" valign="middle">
-<h3 align="left">
-<a href="https://Land.PlayForm.Cloud" target="_blank">
-<picture>
-<source media="(prefers-color-scheme: dark)" srcset="https://PlayForm.Cloud/Dark/Image/GitHub/Land.svg">
-<source media="(prefers-color-scheme: light)" srcset="https://PlayForm.Cloud/Image/GitHub/Land.svg">
-<img width="28" alt="Land Logo" src="https://PlayForm.Cloud/Image/GitHub/Land.svg">
-</picture>
-</a>
-</h3>
-</td>
-<td align="left" valign="middle">
-<h3 align="left">
-<a href="https://Land.PlayForm.Cloud" target="_blank">
-Land
-</a>
-</h3>
-</td>
-<td align="left" valign="middle">
-<h3 align="left">
-&#x2001;🏞️
-</h3>
-</td>
-</tr>
+	<tr>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				Worker
+			</h3>
+		</td>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				🍩
+			</h3>
+		</td>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				+
+			</h3>
+		</td>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				<a href="https://Land.PlayForm.Cloud" target="_blank">
+					<picture>
+						<source media="(prefers-color-scheme: dark)" srcset="https://PlayForm.Cloud/Dark/Image/GitHub/Land.svg" />
+						<source media="(prefers-color-scheme: light)" srcset="https://PlayForm.Cloud/Image/GitHub/Land.svg" />
+						<img width="28" alt="Land Logo" src="https://PlayForm.Cloud/Image/GitHub/Land.svg" />
+					</picture>
+				</a>
+			</h3>
+		</td>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				<a href="https://Land.PlayForm.Cloud" target="_blank">
+					Land
+				</a>
+			</h3>
+		</td>
+		<td align="left" valign="middle">
+			<h3 align="left">
+				🏞️
+			</h3>
+		</td>
+	</tr>
 </table>
 
 ---
@@ -317,32 +321,48 @@ Commons Fund grant.
 <table>
 	<thead>
 		<tr>
-			<th align="left"><strong>Land</strong></th>
-			<th align="left"><strong>PlayForm</strong></th>
-			<th align="left"><strong>NLnet</strong></th>
-			<th align="left"><strong>NGI0 Commons Fund</strong></th>
+			<th align="left">
+				<strong>
+					Land
+				</strong>
+			</th>
+			<th align="left">
+				<strong>
+					PlayForm
+				</strong>
+			</th>
+			<th align="left">
+				<strong>
+					NLnet
+				</strong>
+			</th>
+			<th align="left">
+				<strong>
+					NGI0 Commons Fund
+				</strong>
+			</th>
 		</tr>
 	</thead>
 	<tbody>
 		<tr>
 			<td align="left" valign="middle">
 				<a href="https://Land.PlayForm.Cloud">
-					<img width="60" src="https://raw.githubusercontent.com/CodeEditorLand/Asset/refs/heads/Current/Logo/Land.svg" alt="Land">
+					<img width="60" src="https://raw.githubusercontent.com/CodeEditorLand/Asset/refs/heads/Current/Logo/Land.svg" alt="Land" />
 				</a>
 			</td>
 			<td align="left" valign="middle">
 				<a href="https://PlayForm.Cloud">
-					<img width="76" src="https://raw.githubusercontent.com/PlayForm/Asset/refs/heads/Current/Logo/PlayForm.svg" alt="PlayForm">
+					<img width="76" src="https://raw.githubusercontent.com/PlayForm/Asset/refs/heads/Current/Logo/PlayForm.svg" alt="PlayForm" />
 				</a>
 			</td>
 			<td align="left" valign="middle">
 				<a href="https://NLnet.NL">
-					<img width="240" src="https://NLnet.NL/logo/banner.svg" alt="NLnet">
+					<img width="240" src="https://NLnet.NL/logo/banner.svg" alt="NLnet" />
 				</a>
 			</td>
 			<td align="left" valign="middle">
 				<a href="https://NLnet.NL/commonsfund">
-					<img width="240" src="https://NLnet.NL/image/logos/NGI0CommonsFund_tag_black_mono.svg" alt="NGI0 Commons Fund">
+					<img width="240" src="https://NLnet.NL/image/logos/NGI0CommonsFund_tag_black_mono.svg" alt="NGI0 Commons Fund" />
 				</a>
 			</td>
 		</tr>
