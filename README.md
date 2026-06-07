@@ -3,10 +3,6 @@
 		<td align="left" valign="middle">
 			<h3 align="left">
 				Worker
-			</h3>
-		</td>
-		<td align="left" valign="middle">
-			<h3 align="left">
 				🍩
 			</h3>
 		</td>
@@ -30,12 +26,8 @@
 			<h3 align="left">
 				<a href="https://Land.PlayForm.Cloud" target="_blank">
 					Land
+					🏞️
 				</a>
-			</h3>
-		</td>
-		<td align="left" valign="middle">
-			<h3 align="left">
-				🏞️
 			</h3>
 		</td>
 	</tr>
