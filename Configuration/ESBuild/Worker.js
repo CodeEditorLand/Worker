@@ -1,47 +1,26 @@
 const On = process.env["NODE_ENV"] === "development" || process.env["TAURI_ENV_DEBUG"] === "true";
-
 const Clean = process.env["Clean"] === "true";
-
 var Worker_default = {
-
   color: true,
-
   format: "esm",
-
   logLevel: "debug",
-
   metafile: true,
-
   minify: !On,
-
   outdir: "Configuration",
-
   platform: "node",
-
   target: "esnext",
-
   tsconfig: "tsconfig.json",
-
   write: true,
-
   legalComments: On ? "inline" : "none",
-
   bundle: false,
-
   assetNames: "Asset/[name]-[hash]",
-
   sourcemap: On,
-
   drop: On ? [] : ["debugger"],
-
   ignoreAnnotations: !On,
-
   keepNames: On,
-
   plugins: [
     {
       name: "Target",
-
       // @ts-ignore
       setup({ onStart, initialOptions: { outdir } }) {
         switch (true) {
@@ -55,21 +34,16 @@ var Worker_default = {
                 console.log(_Error);
               }
             });
-
             break;
-
           default:
             break;
         }
       }
     }
   ],
-
   outbase: "Source/Configuration"
 };
-
 const { sep, posix } = await import("node:path");
-
 export {
   Clean,
   On,
@@ -77,5 +51,4 @@ export {
   posix,
   sep
 };
-
 //# sourceMappingURL=Worker.js.map
