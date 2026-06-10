@@ -21,7 +21,7 @@ type Properties = Record<string, unknown>;
 
 const ImportEnv =
 	(typeof import.meta !== "undefined" &&
-		(import.meta as Record<string, unknown>).env) ||
+		(import.meta as unknown as Record<string, unknown>)["env"]) ||
 	({} as Record<string, string | undefined>);
 
 const ReadEnv = (Key: string, Fallback: string): string =>
