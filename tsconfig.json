@@ -4,24 +4,14 @@
 		"baseUrl": "./",
 		"declarationMap": true,
 		"emitDeclarationOnly": true,
-		"lib": [
-			"DOM",
-			"ESNext",
-			"WebWorker"
-		],
+		"lib": ["DOM", "ESNext", "WebWorker"],
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
 		"outDir": "Target",
 		"rootDir": "./Source",
 		"target": "ESNext"
 	},
-	"exclude": [
-		"Target",
-		"node_modules"
-	],
+	"exclude": ["Target", "node_modules"],
 	"extends": "@playform/build/tsconfig",
-	"include": [
-		"Source",
-		"@types/serviceworker"
-	]
+	"include": ["Source", "@types/serviceworker"]
 }
