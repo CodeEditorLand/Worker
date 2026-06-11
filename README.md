@@ -271,8 +271,8 @@ strategy, see the following source files:
 
 ## See Also
 
-- [Worker Documentation](https://editor.land/Doc/worker)
-- [Architecture Overview](https://editor.land/Doc/architecture)
+- [Worker Documentation](https://Editor.Land/Doc/worker)
+- [Architecture Overview](https://Editor.Land/Doc/architecture)
 - [Mountain](https://github.com/CodeEditorLand/Mountain)
 
 ---
