@@ -1,3 +1,3 @@
 {
-	"Message": "chore(Worker): Record prior commit message in machine-readable file\n\nAdd commit-msg.json storing the commit message from the previous\ndocumentation update (Security, Compatibility, License, and Changelog\nsections added to README). This file enables downstream tooling and\naudit pipelines to reference the exact commit message used without\nrelying on git log parsing.\n\nThe message is preserved verbatim from commit a464e68e5720."
+	"Message": "chore(Worker): Persist the most recent commit message in commit-msg.json\n\nUpdate the commit-msg.json tracking file to store the message from\ncommit 556f770, replacing the previously stored message from a464e68.\n\nThis keeps the machine-readable commit log in sync after each commit,\nenabling downstream tooling and audit pipelines to always reference the\nmost recent commit message without git log parsing."
 }
