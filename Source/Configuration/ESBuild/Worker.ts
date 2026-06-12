@@ -11,7 +11,6 @@ export const Clean = process.env["Clean"] === "true";
  *
  */
 export default {
-
 	color: true,
 
 	format: "esm",
@@ -62,7 +61,6 @@ export default {
 										).rm(outdir, {
 											recursive: true,
 										})
-
 									: {};
 							} catch (_Error) {
 								console.log(_Error);

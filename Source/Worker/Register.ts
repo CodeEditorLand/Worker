@@ -3,7 +3,6 @@ import type { TrustedTypePolicyFactory } from "trusted-types";
 import type { WorkerApplication } from "../Worker/Policy.js";
 
 declare global {
-
 	interface Window {
 		_WORKER: string;
 
@@ -29,26 +28,20 @@ const Reload = "WorkerReload";
 
 const Log = __DEV__
 	? (..._Message: any[]) => {
-
 			console.log(`[Register ${INCREMENT}]`, ..._Message);
 		}
-
 	: () => {};
 
 const ErrorLog = __DEV__
 	? (..._Message: any[]) => {
-
 			console.error(`[Register ${INCREMENT}]`, ..._Message);
 		}
-
 	: () => {};
 
 const WarnLog = __DEV__
 	? (..._Message: any[]) => {
-
 			console.warn(`[Register ${INCREMENT}]`, ..._Message);
 		}
-
 	: () => {};
 
 void ((): void => {
@@ -159,17 +152,11 @@ void ((): void => {
 				__DEV__ && Log("Registered Scope:", Registration.scope);
 
 				if (Registration.installing)
-
 					__DEV__ && Log("Service Worker installing.");
-
 				else if (Registration.waiting)
-
 					__DEV__ && Log("Service Worker waiting.");
-
 				else if (Registration.active)
-
 					__DEV__ && Log("Service Worker active.");
-
 				else
 					__DEV__ &&
 						Log("Service Worker state unknown after registration.");
