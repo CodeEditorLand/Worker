@@ -1,4 +1,5 @@
 declare global {
+
 	interface Window {
 		_LOAD_CSS_WORKER: (CSS: string) => void;
 	}
@@ -12,17 +13,22 @@ const INCREMENT = __INCREMENT__ ?? "Initial";
 
 const Log = __DEV__
 	? (..._Message: any[]) => {
+
 			console.log(`[Load CSS ${INCREMENT}]`, ..._Message);
 		}
+
 	: () => {};
 
 const ErrorLog = __DEV__
 	? (..._Message: any[]) => {
+
 			console.error(`[Load CSS ${INCREMENT}]`, ..._Message);
 		}
+
 	: () => {};
 
 window._LOAD_CSS_WORKER = (_CSS: string): void => {
+
 	__DEV__ && Log(`Received request to load: ${_CSS}`);
 
 	const CSS = _CSS + (_CSS.includes("?") ? "&" : "?") + "Skip=Intercept";

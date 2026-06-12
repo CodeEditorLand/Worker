@@ -45,12 +45,14 @@ const Pipe = ReadEnv("Pipe", "http://127.0.0.1:4318");
 const Brand = ReadEnv("Brand", "");
 
 const ResolveDistinctIdentifier = (): string => {
+
 	if (Brand.length > 0) return Brand;
 
 	return "land-dev-worker-shared";
 };
 
 const RandomHex = (Bytes: number): string => {
+
 	const Buf = new Uint8Array(Bytes);
 
 	crypto.getRandomValues(Buf);
@@ -61,6 +63,7 @@ const RandomHex = (Bytes: number): string => {
 let TraceIdentifierCached: string | undefined;
 
 export const TraceIdentifier = (): string => {
+
 	if (!TraceIdentifierCached) TraceIdentifierCached = RandomHex(16);
 
 	return TraceIdentifierCached;
@@ -71,6 +74,7 @@ export const CaptureEvent = (
 
 	Properties: Properties = {},
 ): void => {
+
 	if (!PostHogEnabled || !__DEV__) return;
 
 	if (!Authorize) return;
@@ -109,6 +113,7 @@ export const CaptureSpan = (
 
 	Attributes: ReadonlyArray<readonly [string, string]> = [],
 ): void => {
+
 	if (!Emit || !__DEV__) return;
 
 	const SpanIdentifier = RandomHex(8);
@@ -170,6 +175,7 @@ export const CaptureSpan = (
 };
 
 export const Initialize = (): void => {
+
 	CaptureEvent("land:worker:session:start", {
 		scope:
 			typeof self !== "undefined" &&
