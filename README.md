@@ -24,7 +24,7 @@
 				<picture>
 					<source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/stars/CodeEditorLand/Worker?style=flat&label=Star&logo=github&color=black&labelColor=black&logoColor=white&logoWidth=0" />
 					<source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/CodeEditorLand/Worker?style=flat&label=Star&logo=github&color=white&labelColor=white&logoColor=black&logoWidth=0" />
-					<img src="https://img.shields.io/github/stars/CodeEditorLand/Worker?style=flat&label=Star&logo=github&color=black&labelColor=black&logoColor=white&logoWidth=0" alt="Star" />
+					<img src="https://img.shields.io/github/stars/CodeEditorLand/Worker?style=flat&label=Star&logo=github&color=black&labelColor=black&logoColor=white&logoWidth=0" alt="Star" title="Star" />
 				</picture>
 			</a>
 			<br />
@@ -132,7 +132,7 @@ cut-over on new deployments without stale data from previous versions.
 
 ---
 
-## System Architecture&#x2001;
+## System Architecture
 
 ```mermaid
 graph LR
@@ -142,20 +142,20 @@ graph LR
     classDef sky    fill:#9cf,stroke:#2471a3,stroke-width:1px,stroke-dasharray:5 5,color:#001040;
 
     subgraph SKY["Sky ☀️ - Astro Page (Tauri WebView)"]
-        HTMLPage["index.astro&#x2001;loads Load.js + Register.js"]:::sky
-        MainApp["workbench JS&#x2001;(dynamic CSS imports)"]:::sky
+        HTMLPage["index.astro loads Load.js + Register.js"]:::sky
+        MainApp["workbench JS (dynamic CSS imports)"]:::sky
     end
 
     subgraph SW["Worker ⚙️ - Service Worker (Worker.ts / Policy.ts)"]
         direction TB
-        Register["Register.ts&#x2001;📋&#x2001;registration + update detection&#x2001;scope /Application"]:::worker
-        Policy["Policy.ts&#x2001;🛡️&#x2001;fetch event handler&#x2001;routes by URL pattern"]:::worker
+        Register["Register.ts 📋 registration + update detection scope /Application"]:::worker
+        Policy["Policy.ts 🛡️ fetch event handler routes by URL pattern"]:::worker
         subgraph CACHES["Cache Storage"]
-            CoreCache["CACHE_CORE&#x2001;🌐&#x2001;network-first&#x2001;/Application/ navigation"]:::cache
-            AssetCache["CACHE_ASSET&#x2001;📦&#x2001;cache-first&#x2001;/Static/Application/* CSS + JS"]:::cache
+            CoreCache["CACHE_CORE 🌐 network-first /Application/ navigation"]:::cache
+            AssetCache["CACHE_ASSET 📦 cache-first /Static/Application/* CSS + JS"]:::cache
         end
-        CSSLoad["Worker/CSS/Load.ts&#x2001;🎨&#x2001;window._LOAD_CSS_WORKER&#x2001;client-side link tag injector"]:::worker
-        Telemetry["Telemetry/Bridge.ts&#x2001;📊&#x2001;PostHog + OTLP&#x2001;SW-level dual-pipe"]:::worker
+        CSSLoad["Worker/CSS/Load.ts 🎨 window._LOAD_CSS_WORKER client-side link tag injector"]:::worker
+        Telemetry["Telemetry/Bridge.ts 📊 PostHog + OTLP SW-level dual-pipe"]:::worker
 
         Register --> Policy
         Policy --> CoreCache
@@ -167,8 +167,8 @@ graph LR
     HTMLPage -- registers --> Register
     HTMLPage -- defines _LOAD_CSS_WORKER --> CSSLoad
     MainApp -- import .css --> Policy
-    Policy -- JS module response&#x2001;export default + _LOAD_CSS_WORKER call --> MainApp
-    MainApp -- link rel=stylesheet&#x2001;URL?Skip=Intercept --> Policy
+    Policy -- JS module response export default + _LOAD_CSS_WORKER call --> MainApp
+    MainApp -- link rel=stylesheet URL?Skip=Intercept --> Policy
     Policy -- cache-first real CSS --> MainApp
 ```
 
@@ -388,6 +388,33 @@ Cache names include the build increment for clean cut-over:
 
 ---
 
+## Security&#x2001;🔒
+
+Worker enforces security at multiple layers:
+
+| Layer | Mechanism |
+|-------|-----------|
+| **Trusted Types Enforcement** | `WorkerApplication` policy validates service worker script URLs against a regex allowlist before `navigator.serviceWorker.register`, preventing DOM XSS via injected SW paths |
+| **Auth Token Encryption** | Authentication tokens stored in cache are encrypted at rest — no page-level script can read them |
+| **CSP Compatibility** | Full `Content-Security-Policy` compliance with `Trusted Types` integration; script sources are validated at registration time |
+| **Scope Isolation** | Caching strategies are scoped to `/Application` and `/Static/Application/*`; cross-origin requests pass through untouched |
+| **Build-Time Sealing** | Environment variables and API keys are injected at build time via ESBuild define constants; no runtime config parsing or dynamic script loading |
+
+---
+
+## Compatibility
+
+Worker is designed to be compatible with:
+
+| Target | Integration |
+|--------|-------------|
+| **Sky** ☀️ | Registers the service worker via `navigator.serviceWorker.register`; defines `window._LOAD_CSS_WORKER` and `window._WORKER` globals |
+| **Wind** 🌬️ | Indirect dependency — workbench JS served through Sky passes through Worker's caching strategies; CSP headers propagate to SW context |
+| **Cocoon** 🦋 | Extension-host page loads run inside the same WebView; Worker caches both app shell and extension assets under `/Application` scope |
+| **Tauri WebView** | Runs as a standard service worker in the Tauri WebView context; uses `Cache Storage` API and `fetch` API exclusively (no `Node.js` APIs) |
+
+---
+
 ## API Reference
 
 - [Worker.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker.ts)
@@ -415,6 +442,26 @@ Cache names include the build increment for clean cut-over:
   frontend element)
 - [Cocoon 🦋](https://github.com/CodeEditorLand/Cocoon) — `Node.js`/`Effect-TS`
   extension host (correlated frontend element)
+- [CHANGELOG.md](https://github.com/CodeEditorLand/Worker/tree/Current/CHANGELOG.md) — Release
+  history for **Worker** ⚙️
+
+---
+
+## License
+
+This project is released into the public domain under the **Creative Commons CC0
+Universal** license. You are free to use, modify, distribute, and build upon
+this work for any purpose, without any restrictions. For the full legal text,
+see the
+[`LICENSE`](https://github.com/CodeEditorLand/Worker/tree/Current/LICENSE) file.
+
+---
+
+## Changelog&#x2001;📜
+
+See
+[`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/CHANGELOG.md)
+for a history of changes specific to **Worker** ⚙️.
 
 ---
 
