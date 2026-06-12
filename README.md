@@ -1,4 +1,4 @@
-# **Worker** ⚙️
+# **Worker**&#x2001;⚙️
 
 <table>
 	<tr>
