@@ -19,8 +19,8 @@
 
 # **Worker** 🍩 Deep Dive & Architecture
 
-This document provides the technical foundation for implementing Service Worker
-functionality within the Land ecosystem. **Worker** serves as the performance
+**Worker** provides the technical foundation for implementing Service Worker
+functionality within the Land project. **Worker** serves as the performance
 optimization layer that provides intelligent caching, dynamic CSS loading, and
 offline capabilities for web applications.
 

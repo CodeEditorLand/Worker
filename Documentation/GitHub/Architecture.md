@@ -1,6 +1,25 @@
-# Worker: Service Worker 🍩
+<table>
+	<tr>
+		<td colspan="1">
+			<h3 align="center">
+				<picture>
+					<source media="(prefers-color-scheme: dark)" srcset="https://editor.land/Dark/Image/GitHub/Land.svg">
+					<source media="(prefers-color-scheme: light)" srcset="https://editor.land/Image/GitHub/Land.svg">
+					<img width="28" alt="Land Logo" src="https://editor.land/Image/GitHub/Land.svg">
+				</picture>
+			</h3>
+		</td>
+		<td colspan="3" valign="top">
+			<h3 align="center"> Worker 🍩</h3>
+		</td>
+	</tr>
+</table>
 
-This document describes `Worker`, the service worker for `Land`.
+---
+
+# **Worker** 🍩 Architecture
+
+`Worker` is the service worker for `Land`.
 
 - `Worker` implements asset caching and offline support.
 - It implements a dynamic CSS loading strategy.
