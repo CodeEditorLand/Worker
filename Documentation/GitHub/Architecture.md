@@ -338,16 +338,16 @@ export async function registerWorker(): Promise<ServiceWorkerRegistration> {
 
 ## Shim Compatibility
 
-| 🟠 Low-Level Shim | 🔵 Coverage Shim |
-|-------------------|-----------------|
+| 🟠 Low-Level Shim             | 🔵 Coverage Shim                |
+| ----------------------------- | ------------------------------- |
 | Tier: `TierShim=Own\|Preempt` | Tier: `TierShim=Proxy\|Replace` |
-| Engine prototype hooks | Service routing + audit |
+| Engine prototype hooks        | Service routing + audit         |
 
 > This Element supports the Land deep-shim interception system. Gated behind
-> `TierShim` env var (default: `None` — zero overhead).
+> `TierShim` env var (default: `None` - zero overhead).
 >
-> **Worker shim architecture:** No shim-specific modules — service worker,
-> not affected by engine hooks.
+> **Worker shim architecture:** No shim-specific modules - service worker, not
+> affected by engine hooks.
 
 ---
 

@@ -1,20 +1,22 @@
-# Worker — TypeScript Service Worker Element
+# Worker - TypeScript Service Worker Element
 
-Worker provides the service worker runtime for CodeEditorLand, running in a separate thread context and serving web requests independently.
+Worker provides the service worker runtime for CodeEditorLand, running in a
+separate thread context and serving web requests independently.
 
-Refer to the [Architecture.md](./Architecture.md) for detailed layer diagrams and component maps.
+Refer to the [Architecture.md](./Architecture.md) for detailed layer diagrams
+and component maps.
 
 ---
 
 ## Shim Compatibility
 
-| 🟠 Low-Level Shim | 🔵 Coverage Shim |
-|-------------------|-----------------|
+| 🟠 Low-Level Shim             | 🔵 Coverage Shim                |
+| ----------------------------- | ------------------------------- |
 | Tier: `TierShim=Own\|Preempt` | Tier: `TierShim=Proxy\|Replace` |
-| Engine prototype hooks | Service routing + audit |
+| Engine prototype hooks        | Service routing + audit         |
 
 > This Element supports the Land deep-shim interception system. Gated behind
-> `TierShim` env var (default: `None` — zero overhead).
+> `TierShim` env var (default: `None` - zero overhead).
 
 ---
 

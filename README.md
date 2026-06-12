@@ -418,15 +418,15 @@ Worker is designed to be compatible with:
 ## API Reference
 
 - [Worker.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker.ts)
-  - Main service worker with caching strategies and CSS import interception
+    - Main service worker with caching strategies and CSS import interception
 - [Policy.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Policy.ts)
-  - `Trusted Types` policy for secure script URL validation
+    - `Trusted Types` policy for secure script URL validation
 - [Register.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Register.ts)
-  - Service worker registration, update detection, and activation
+    - Service worker registration, update detection, and activation
 - [Load.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/CSS/Load.ts)
-  - Client-side CSS loader function (`window._LOAD_CSS_WORKER`)
+    - Client-side CSS loader function (`window._LOAD_CSS_WORKER`)
 - [Bridge.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Telemetry/Bridge.ts)
-  - `PostHog` + `OTLP` telemetry bridge from service worker context
+    - `PostHog` + `OTLP` telemetry bridge from service worker context
 
 ---
 
@@ -443,7 +443,7 @@ Worker is designed to be compatible with:
 - [Cocoon 🦋](https://github.com/CodeEditorLand/Cocoon) - `Node.js`/`Effect-TS`
   extension host (correlated frontend element)
 - [CHANGELOG.md](https://github.com/CodeEditorLand/Worker/tree/Current/CHANGELOG.md)
-  - Release history for **Worker** ⚙️
+    - Release history for **Worker** ⚙️
 
 ---
 

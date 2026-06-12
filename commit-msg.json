@@ -1,0 +1,3 @@
+{
+	"Message": "docs(Worker): Add deep-shim interception system documentation\n\nDocument the two-tier shim compatibility model for Worker, explaining both the Low-Level shim (TierShim=Own|Preempt, engine prototype hooks) and Coverage shim (TierShim=Proxy|Replace, service routing + audit).\n\nAdd the Shim Compatibility table to Architecture.md and create a standalone GitHub README.md with the same shim documentation alongside a project overview and maintainer links."
+}
