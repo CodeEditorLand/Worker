@@ -336,6 +336,21 @@ export async function registerWorker(): Promise<ServiceWorkerRegistration> {
 
 ---
 
+## Shim Compatibility
+
+| 🟠 Low-Level Shim | 🔵 Coverage Shim |
+|-------------------|-----------------|
+| Tier: `TierShim=Own\|Preempt` | Tier: `TierShim=Proxy\|Replace` |
+| Engine prototype hooks | Service routing + audit |
+
+> This Element supports the Land deep-shim interception system. Gated behind
+> `TierShim` env var (default: `None` — zero overhead).
+>
+> **Worker shim architecture:** No shim-specific modules — service worker,
+> not affected by engine hooks.
+
+---
+
 **Project Maintainers:** Source Open
 ([Source/Open@Editor.Land](mailto:Source/Open@Editor.Land)) |
 [GitHub Repository](https://github.com/CodeEditorLand/Worker) |
