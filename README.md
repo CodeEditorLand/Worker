@@ -39,7 +39,7 @@
 	</tr>
 </table>
 
-The Service Worker for Land — asset caching, offline support, and dynamic CSS
+The Service Worker for Land - asset caching, offline support, and dynamic CSS
 loading&#x2001;🏞️
 
 > **Web applications that lose authentication state on network drops force users
@@ -65,22 +65,22 @@ shims on the fly.
 Web applications that lose connectivity force users to stare at blank screens
 and re-authenticate. Worker solves this by implementing multiple caching
 strategies (`network-first` for navigation, `cache-first` for static assets) and
-encrypting authentication tokens at rest in cache storage — no script on the
+encrypting authentication tokens at rest in cache storage - no script on the
 page can read them.
 
 **Worker is engineered to:**
 
-1. **Implement Multi-Strategy Asset Caching** — `network-first` for navigation
+1. **Implement Multi-Strategy Asset Caching** - `network-first` for navigation
    requests (always fresh app shell), `cache-first` for static assets under
    `/Static/Application/*`, and automatic pre-caching of essential resources on
    service worker install.
-2. **Enable Full Offline Support** — Serve the entire application shell and all
+2. **Enable Full Offline Support** - Serve the entire application shell and all
    cached assets without network connectivity, with transparent fallback through
    the `Cache Storage` API.
-3. **Handle Dynamic CSS Loading** — Intercept JavaScript `import` of CSS modules
+3. **Handle Dynamic CSS Loading** - Intercept JavaScript `import` of CSS modules
    and respond with generated JavaScript that triggers standard `<link>` tag
    injection, bypassing the browser's restrictions on dynamic CSS imports.
-4. **Support Automatic Updates** — Detect new Service Worker versions, validate
+4. **Support Automatic Updates** - Detect new Service Worker versions, validate
    Trusted Types policy, and prompt clients to reload for seamless version
    transitions without data loss.
 
@@ -88,35 +88,115 @@ page can read them.
 
 ## Key Features&#x2001;🔐
 
-**`Core` Cache (`CACHE_CORE`)** — Network-first strategy for navigation requests
+**`Core` Cache (`CACHE_CORE`)** - Network-first strategy for navigation requests
 under the `/Application` scope. Pre-caches essential assets on install and falls
 back to cache when the network is unavailable, ensuring the application shell
 always loads.
 
-**`Asset` Cache (`CACHE_ASSET`)** — Cache-first strategy for static resources
+**`Asset` Cache (`CACHE_ASSET`)** - Cache-first strategy for static resources
 under `/Static/Application/*`. Stores JavaScript, CSS, images, fonts, and
 dynamically generated JS modules (the CSS-loader shims) with version-aware cache
 keys tied to build increments.
 
-**Dynamic CSS Loading Pipeline** — Two-pass interception system that transforms
+**Dynamic CSS Loading Pipeline** - Two-pass interception system that transforms
 `import './styles.css'` into a `<link rel="stylesheet">` tag without infinite
 loops. Pass 1 intercepts the CSS import and returns a JavaScript shim calling
 `window._LOAD_CSS_WORKER`. Pass 2 detects the `?Skip=Intercept` query parameter
 and serves the real CSS from cache.
 
-**Trusted Types Integration** — Full CSP-compatible `Trusted Types` enforcement
+**Trusted Types Integration** - Full CSP-compatible `Trusted Types` enforcement
 through a dedicated `WorkerApplication` policy. Service worker script URLs are
 validated against a regex allowlist before being passed to
 `navigator.serviceWorker.register`, preventing DOM XSS via injected SW paths.
 
-**`PostHog` Telemetry Bridge** — Dual-pipe telemetry (`PostHog` capture + `OTLP`
+**`PostHog` Telemetry Bridge** - Dual-pipe telemetry (`PostHog` capture + `OTLP`
 traces) from inside the service worker context. Uses the `fetch` API directly
-(no Node.js HTTP, no CDN-loaded SDKs — service workers cannot load scripts
+(no Node.js HTTP, no CDN-loaded SDKs - service workers cannot load scripts
 post-install) with build-baked endpoint and key from `import.meta.env`.
 
-**Increment-Aware Cache Keys** — All cache names are tagged with the build
+**Increment-Aware Cache Keys** - All cache names are tagged with the build
 increment (`Core-{INCREMENT}`, `Asset-{INCREMENT}`), enabling clean cache
 cut-over on new deployments without stale data from previous versions.
+
+---
+
+## Dynamic CSS Loading - Details
+
+This worker implements a specific two-pass strategy to handle dynamic CSS
+imports from JavaScript modules (e.g., `import './some-styles.css';`) located
+under `/Static/Application/`.
+
+### The Workflow
+
+1. **Initial JS Import** - A JS module attempts to `import` a CSS file under
+   `/Static/Application/`.
+2. **Service Worker Intercept #1** - The `fetch` listener intercepts the
+   request. Because the URL matches `/Static/Application/*.css` and lacks
+   `?Skip=Intercept`, it proceeds with the CSS handling logic.
+3. **Service Worker Responds with JS** - The worker responds with a dynamically
+   generated JavaScript module:
+    ```javascript
+    window._LOAD_CSS_WORKER("/Static/Application/CodeEditorLand/component.css");
+    export default {};
+    ```
+    This JS response is cached in `CACHE_ASSET` using the original CSS URL as
+    the key.
+4. **Browser Executes JS** - The browser executes this module.
+   `export default {}` satisfies the `import` statement.
+5. **Client Function Call** - `window._LOAD_CSS_WORKER` is called (defined in
+   `Load.ts`).
+6. **Client Modifies URL & Creates `<link>`** - The function appends
+   `?Skip=Intercept` to the CSS URL and creates a standard
+   `<link rel="stylesheet">` tag in `<head>`.
+7. **Browser Fetches CSS** - The browser initiates a second fetch with
+   `?Skip=Intercept`.
+8. **Service Worker Intercept #2** - The worker detects `?Skip=Intercept`,
+   bypasses JS generation, and serves the actual CSS via cache-first strategy.
+9. **Browser Applies Styles** - The browser receives and applies the real CSS
+   (`Content-Type: text/css`).
+
+This two-step fetch process, distinguished by the `?Skip=Intercept` parameter,
+allows the initial JavaScript import to resolve quickly while triggering the
+standard browser mechanism for loading actual CSS without infinite interception
+loops.
+
+### HTML Integration Example
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Load the CSS Loader script EARLY -->
+		<script src="/Worker/CSS/Load.js" type="module"></script>
+
+		<!-- Set the path to the Service Worker file -->
+		<script>
+			window._WORKER = "/Worker.js";
+		</script>
+
+		<!-- Register the Service Worker -->
+		<script src="/Worker/Register.js" type="module"></script>
+	</head>
+
+	<body>
+		<!-- Load main application script LAST -->
+		<script src="/scripts/main-app.js" type="module"></script>
+	</body>
+</html>
+```
+
+---
+
+## Caching Strategies&#x2001;📦
+
+| Strategy          | Cache Name    | URL Pattern                               | Behavior                                                                                                  |
+| ----------------- | ------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Network-First** | `CORE_CACHE`  | `/Application` (navigation)               | Try network first, fall back to cache. Ensures fresh app shell while providing offline resilience.        |
+| **Cache-First**   | `CACHE_ASSET` | `/Static/Application/*` (CSS, JS, images) | Serve from cache if available, fetch and cache if missing. Generates JS shims for CSS imports on the fly. |
+| **Pass-Through**  | -             | Cross-origin requests                     | Network-only, no caching. Third-party resources are not intercepted.                                      |
+
+Cache names include the build increment for clean cut-over: `Core-{INCREMENT}`
+and `Asset-{INCREMENT}`.
 
 ---
 
@@ -128,7 +208,7 @@ cut-over on new deployments without stale data from previous versions.
 | **Build-Time Configuration** | Environment variables (`__DEV__`, `__INCREMENT__`, `BASE_REMOTE`) are injected at build time by ESBuild, eliminating runtime config parsing and keeping the worker bundle self-contained.                   | `Source/Configuration/ESBuild/Worker.ts`, `Source/Configuration/ESBuild/Target.ts`   |
 | **CSS Import Interception**  | Transform JavaScript CSS imports into browser-native `<link>` tag loading through a two-pass interception pipeline (shim response → `?Skip=Intercept` → real CSS).                                          | `Source/Worker.ts` (fetch handler), `Source/Worker/CSS/Load.ts` (client-side loader) |
 | **Safe Registration**        | Service worker registration validates Trusted Types policy before calling `navigator.serviceWorker.register`, handles scope navigation, and detects SW updates through periodic checks.                     | `Source/Worker/Register.ts`, `Source/Worker/Policy.ts`                               |
-| **Observability**            | Service-worker-level telemetry bridges (`PostHog` events + `OTLP` spans) that operate within the constrained SW environment — no SDKs, no CDN scripts, just raw `fetch`.                                    | `Source/Telemetry/Bridge.ts`                                                         |
+| **Observability**            | Service-worker-level telemetry bridges (`PostHog` events + `OTLP` spans) that operate within the constrained SW environment - no SDKs, no CDN scripts, just raw `fetch`.                                    | `Source/Telemetry/Bridge.ts`                                                         |
 
 ---
 
@@ -263,7 +343,7 @@ the UI.
 
 Worker's caching strategies are scoped to `/Application` and
 `/Static/Application/*`, ensuring that only Land's own assets pass through the
-policy routing — third-party requests are passed through untouched.
+policy routing - third-party requests are passed through untouched.
 
 ---
 
@@ -298,93 +378,13 @@ npm run Run
 
 ### Build Constants
 
-ESBuild injects these constants at build time — no runtime config parsing:
+ESBuild injects these constants at build time - no runtime config parsing:
 
 | Constant        | Source                      | Description                           |
 | --------------- | --------------------------- | ------------------------------------- |
 | `__DEV__`       | `NODE_ENV !== 'production'` | Toggle verbose logging                |
 | `__INCREMENT__` | Build pipeline              | Cache key suffix for cache cut-over   |
 | `BASE_REMOTE`   | Query param or origin       | Remote base URL for telemetry routing |
-
----
-
-## Dynamic CSS Loading — Details
-
-This worker implements a specific two-pass strategy to handle dynamic CSS
-imports from JavaScript modules (e.g., `import './some-styles.css';`) located
-under `/Static/Application/`.
-
-### The Workflow
-
-1. **Initial JS Import** — A JS module attempts to `import` a CSS file under
-   `/Static/Application/`.
-2. **Service Worker Intercept #1** — The `fetch` listener intercepts the
-   request. Because the URL matches `/Static/Application/*.css` and lacks
-   `?Skip=Intercept`, it proceeds with the CSS handling logic.
-3. **Service Worker Responds with JS** — The worker responds with a dynamically
-   generated JavaScript module:
-    ```javascript
-    window._LOAD_CSS_WORKER("/Static/Application/CodeEditorLand/component.css");
-    export default {};
-    ```
-    This JS response is cached in `CACHE_ASSET` using the original CSS URL as
-    the key.
-4. **Browser Executes JS** — The browser executes this module.
-   `export default {}` satisfies the `import` statement.
-5. **Client Function Call** — `window._LOAD_CSS_WORKER` is called (defined in
-   `Load.ts`).
-6. **Client Modifies URL & Creates `<link>`** — The function appends
-   `?Skip=Intercept` to the CSS URL and creates a standard
-   `<link rel="stylesheet">` tag in `<head>`.
-7. **Browser Fetches CSS** — The browser initiates a second fetch with
-   `?Skip=Intercept`.
-8. **Service Worker Intercept #2** — The worker detects `?Skip=Intercept`,
-   bypasses JS generation, and serves the actual CSS via cache-first strategy.
-9. **Browser Applies Styles** — The browser receives and applies the real CSS
-   (`Content-Type: text/css`).
-
-This two-step fetch process, distinguished by the `?Skip=Intercept` parameter,
-allows the initial JavaScript import to resolve quickly while triggering the
-standard browser mechanism for loading actual CSS without infinite interception
-loops.
-
-### HTML Integration Example
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<!-- Load the CSS Loader script EARLY -->
-		<script src="/Worker/CSS/Load.js" type="module"></script>
-
-		<!-- Set the path to the Service Worker file -->
-		<script>
-			window._WORKER = "/Worker.js";
-		</script>
-
-		<!-- Register the Service Worker -->
-		<script src="/Worker/Register.js" type="module"></script>
-	</head>
-
-	<body>
-		<!-- Load main application script LAST -->
-		<script src="/scripts/main-app.js" type="module"></script>
-	</body>
-</html>
-```
-
----
-
-## Caching Strategies&#x2001;📦
-
-| Strategy          | Cache Name    | URL Pattern                               | Behavior                                                                                                  |
-| ----------------- | ------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Network-First** | `CORE_CACHE`  | `/Application` (navigation)               | Try network first, fall back to cache. Ensures fresh app shell while providing offline resilience.        |
-| **Cache-First**   | `CACHE_ASSET` | `/Static/Application/*` (CSS, JS, images) | Serve from cache if available, fetch and cache if missing. Generates JS shims for CSS imports on the fly. |
-| **Pass-Through**  | —             | Cross-origin requests                     | Network-only, no caching. Third-party resources are not intercepted.                                      |
-
-Cache names include the build increment for clean cut-over: `Core-{INCREMENT}`
-and `Asset-{INCREMENT}`.
 
 ---
 
@@ -395,7 +395,7 @@ Worker enforces security at multiple layers:
 | Layer                         | Mechanism                                                                                                                                                                     |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Trusted Types Enforcement** | `WorkerApplication` policy validates service worker script URLs against a regex allowlist before `navigator.serviceWorker.register`, preventing DOM XSS via injected SW paths |
-| **Auth Token Encryption**     | Authentication tokens stored in cache are encrypted at rest — no page-level script can read them                                                                              |
+| **Auth Token Encryption**     | Authentication tokens stored in cache are encrypted at rest - no page-level script can read them                                                                              |
 | **CSP Compatibility**         | Full `Content-Security-Policy` compliance with `Trusted Types` integration; script sources are validated at registration time                                                 |
 | **Scope Isolation**           | Caching strategies are scoped to `/Application` and `/Static/Application/*`; cross-origin requests pass through untouched                                                     |
 | **Build-Time Sealing**        | Environment variables and API keys are injected at build time via ESBuild define constants; no runtime config parsing or dynamic script loading                               |
@@ -409,7 +409,7 @@ Worker is designed to be compatible with:
 | Target            | Integration                                                                                                                              |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | **Sky** ☀️        | Registers the service worker via `navigator.serviceWorker.register`; defines `window._LOAD_CSS_WORKER` and `window._WORKER` globals      |
-| **Wind** 🌬️       | Indirect dependency — workbench JS served through Sky passes through Worker's caching strategies; CSP headers propagate to SW context    |
+| **Wind** 🌬️       | Indirect dependency - workbench JS served through Sky passes through Worker's caching strategies; CSP headers propagate to SW context    |
 | **Cocoon** 🦋     | Extension-host page loads run inside the same WebView; Worker caches both app shell and extension assets under `/Application` scope      |
 | **Tauri WebView** | Runs as a standard service worker in the Tauri WebView context; uses `Cache Storage` API and `fetch` API exclusively (no `Node.js` APIs) |
 
@@ -418,32 +418,32 @@ Worker is designed to be compatible with:
 ## API Reference
 
 - [Worker.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker.ts)
-  — Main service worker with caching strategies and CSS import interception
+  - Main service worker with caching strategies and CSS import interception
 - [Policy.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Policy.ts)
-  — `Trusted Types` policy for secure script URL validation
+  - `Trusted Types` policy for secure script URL validation
 - [Register.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Register.ts)
-  — Service worker registration, update detection, and activation
+  - Service worker registration, update detection, and activation
 - [Load.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/CSS/Load.ts)
-  — Client-side CSS loader function (`window._LOAD_CSS_WORKER`)
+  - Client-side CSS loader function (`window._LOAD_CSS_WORKER`)
 - [Bridge.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Telemetry/Bridge.ts)
-  — `PostHog` + `OTLP` telemetry bridge from service worker context
+  - `PostHog` + `OTLP` telemetry bridge from service worker context
 
 ---
 
 ## Related Documentation
 
-- [Architecture Overview](https://Editor.Land/Doc/architecture) — Land system
+- [Architecture Overview](https://Editor.Land/Doc/architecture) - Land system
   architecture
-- [Land Documentation](../../Documentation/GitHub/README.md) — Complete
+- [Land Documentation](../../Documentation/GitHub/README.md) - Complete
   documentation index
-- [Sky ☀️](https://github.com/CodeEditorLand/Sky) — UI component layer that
+- [Sky ☀️](https://github.com/CodeEditorLand/Sky) - UI component layer that
   registers Worker
-- [Wind 🌬️](https://github.com/CodeEditorLand/Wind) — Service layer (correlated
+- [Wind 🌬️](https://github.com/CodeEditorLand/Wind) - Service layer (correlated
   frontend element)
-- [Cocoon 🦋](https://github.com/CodeEditorLand/Cocoon) — `Node.js`/`Effect-TS`
+- [Cocoon 🦋](https://github.com/CodeEditorLand/Cocoon) - `Node.js`/`Effect-TS`
   extension host (correlated frontend element)
 - [CHANGELOG.md](https://github.com/CodeEditorLand/Worker/tree/Current/CHANGELOG.md)
-  — Release history for **Worker** ⚙️
+  - Release history for **Worker** ⚙️
 
 ---
 
@@ -457,7 +457,7 @@ see the
 
 ---
 
-## Changelog&#x2001;📜
+## Changelog
 
 See
 [`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/CHANGELOG.md)
