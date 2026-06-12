@@ -1,3 +1,0 @@
-{
-	"Message": "chore(Worker): Persist the most recent commit message in commit-msg.json\n\nUpdate the commit-msg.json tracking file to store the message from\ncommit 556f770, replacing the previously stored message from a464e68.\n\nThis keeps the machine-readable commit log in sync after each commit,\nenabling downstream tooling and audit pipelines to always reference the\nmost recent commit message without git log parsing."
-}

@@ -17,3 +17,4 @@ Configuration/
 # IDE
 .vscode/
 .idea/
+commit-msg.json
