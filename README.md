@@ -1,4 +1,4 @@
-# **Worker**&#x2001;⚙️
+# **Worker**&#x2001;🍩
 
 <table>
 	<tr>
@@ -221,12 +221,12 @@ graph LR
     classDef cache  fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
     classDef sky    fill:#9cf,stroke:#2471a3,stroke-width:1px,stroke-dasharray:5 5,color:#001040;
 
-    subgraph SKY["Sky ☀️ - Astro Page (Tauri WebView)"]
+    subgraph SKY["Sky 🌌 - Astro Page (Tauri WebView)"]
         HTMLPage["index.astro loads Load.js + Register.js"]:::sky
         MainApp["workbench JS (dynamic CSS imports)"]:::sky
     end
 
-    subgraph SW["Worker ⚙️ - Service Worker (Worker.ts / Policy.ts)"]
+    subgraph SW["Worker 🍩 - Service Worker (Worker.ts / Policy.ts)"]
         direction TB
         Register["Register.ts 📋 registration + update detection scope /Application"]:::worker
         Policy["Policy.ts 🛡️ fetch event handler routes by URL pattern"]:::worker
@@ -436,9 +436,9 @@ Worker is designed to be compatible with:
   architecture
 - [Land Documentation](../../Documentation/GitHub/README.md) - Complete
   documentation index
-- [Sky ☀️](https://github.com/CodeEditorLand/Sky) - UI component layer that
+- [Sky 🌌](https://github.com/CodeEditorLand/Sky) - UI component layer that
   registers Worker
-- [Wind 🌬️](https://github.com/CodeEditorLand/Wind) - Service layer (correlated
+- [Wind 🍃](https://github.com/CodeEditorLand/Wind) - Service layer (correlated
   frontend element)
 - [Cocoon 🦋](https://github.com/CodeEditorLand/Cocoon) - `Node.js`/`Effect-TS`
   extension host (correlated frontend element)
