@@ -9,15 +9,13 @@
 				</picture>
 			</h3>
 		</td>
-		<td colspan="3" valign="top">
-			<h3 align="center"> Worker 🍩</h3>
-		</td>
+		<td colspan="3" valign="top"><h3 align="center">Worker&#x2001;🍩</h3></td>
 	</tr>
 </table>
 
 ---
 
-# **Worker** 🍩 Architecture
+# **Worker**&#x2001;🍩&#x2001;Architecture
 
 `Worker` is the service worker for `Land`.
 
@@ -66,7 +64,7 @@ graph TB
     CSS -->|"?Skip=Intercept"| BROWSER["Browser &lt;link&gt; loading"]
 ```
 
-## Overview 📋
+## Overview&#x2001;📋
 
 `Worker` is a standalone service worker script with no runtime dependencies.
 
@@ -83,7 +81,7 @@ graph TB
 
 ---
 
-## Architecture 🏗️
+## Architecture&#x2001;🏗️
 
 ```
 +------------------------------------------------------------------+
@@ -104,7 +102,7 @@ graph TB
 +------------------------------------------------------------------+
 ```
 
-### Module Map 🗺️
+### Module Map&#x2001;🗺️
 
 | Path                         | Purpose                            |
 | ---------------------------- | ---------------------------------- |
@@ -116,7 +114,7 @@ graph TB
 
 ---
 
-## Caching Strategy 💾
+## Caching Strategy&#x2001;💾
 
 `Worker` implements a multi-tier caching strategy for different resource types.
 
@@ -169,7 +167,7 @@ Request static asset (JS, CSS)
 
 ---
 
-## Dynamic CSS Loading 🎨
+## Dynamic CSS Loading&#x2001;🎨
 
 `Worker` implements a unique CSS loading strategy: JavaScript modules that
 `import 'styles.css'` are intercepted and served a JS proxy that injects a
@@ -232,7 +230,7 @@ Phase 2: Browser loads styles.css?Skip=Intercept
 
 ---
 
-## Service Worker Lifecycle 🔄
+## Service Worker Lifecycle&#x2001;🔄
 
 ### Installation
 
@@ -290,7 +288,7 @@ Phase 2: Browser loads styles.css?Skip=Intercept
 
 ---
 
-## Client Scripts 📜
+## Client Scripts&#x2001;📜
 
 `Worker` provides client-side scripts for integration.
 
@@ -323,7 +321,7 @@ export async function registerWorker(): Promise<ServiceWorkerRegistration> {
 
 ---
 
-## Related Documentation 📚
+## Related Documentation&#x2001;📚
 
 - [Sky](https://github.com/CodeEditorLand/Sky/tree/Current/Documentation/GitHub/Architecture.md) -
   UI layer (`Worker` consumer)

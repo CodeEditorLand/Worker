@@ -9,15 +9,13 @@
 				</picture>
 			</h3>
 		</td>
-		<td colspan="3" valign="top">
-			<h3 align="center"> Worker 🍩</h3>
-		</td>
+		<td colspan="3" valign="top"><h3 align="center">Worker&#x2001;🍩</h3></td>
 	</tr>
 </table>
 
 ---
 
-# **Worker** 🍩 Deep Dive & Architecture
+# **Worker**&#x2001;🍩&#x2001;Deep Dive & Architecture
 
 **Worker** provides the technical foundation for implementing Service Worker
 functionality within the Land project. **Worker** serves as the performance
