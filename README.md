@@ -454,38 +454,48 @@ Worker&#x2001;🍩 is designed to be compatible with:
 
 ---
 
-## License
+## License&#x2001;⚖️
 
 This project is released into the public domain under the **Creative Commons CC0
 Universal** license. You are free to use, modify, distribute, and build upon
 this work for any purpose, without any restrictions. For the full legal text,
-see the
-[`LICENSE`](https://github.com/CodeEditorLand/Worker/tree/Current/LICENSE) file.
+see the [`LICENSE`](https://github.com/CodeEditorLand/Worker/tree/Current/LICENSE)
+file.
 
 ---
 
-## Changelog
+## Changelog&#x2001;📜
 
-See
+Stay updated with our progress! See
 [`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/CHANGELOG.md)
-for a history of changes specific to **Worker**&#x2001;🍩.
+for a history of changes.
 
 ---
 
 ## Funding & Acknowledgements&#x2001;🙏🏻
 
+**Land**&#x2001;🏞️ is proud to be an open-source endeavor. Our journey is
+significantly supported by the organizations and projects that believe in the
+future of open-source software.
+
 This project is funded through
 [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
 [NLnet](https://NLnet.NL) with financial support from the European Commission's
-Next Generation Internet program, under grant agreement No 101135429.
-
-The project is operated by PlayForm, based in Sofia, Bulgaria. PlayForm acts as
-the open-source steward for Code Editor Land under the NGI0 Commons Fund grant.
+[Next Generation Internet](https://ngi.eu) program. Learn more at the
+[NLnet project page](https://NLnet.NL/project/Land).
 
 <table>
+	<thead>
+		<tr>
+			<th align="left"><strong>Land</strong></th>
+			<th align="left"><strong>PlayForm</strong></th>
+			<th align="left"><strong>NLnet</strong></th>
+			<th align="left"><strong>NGI0 Commons Fund</strong></th>
+		</tr>
+	</thead>
 	<tbody>
 		<tr>
-			<td align="left" valign="middle"><a href="https://Editor.Land"><img width="60" src="https://raw.githubusercontent.com/CodeEditorLand/Asset/refs/heads/Current/Logo/Land.svg" alt="Land" /></a></td>
+			<td align="left" valign="middle"><a href="https://editor.land"><img width="60" src="https://raw.githubusercontent.com/CodeEditorLand/Asset/refs/heads/Current/Logo/Land.svg" alt="Land" /></a></td>
 			<td align="left" valign="middle"><a href="https://PlayForm.Cloud"><img width="76" src="https://raw.githubusercontent.com/PlayForm/Asset/refs/heads/Current/Logo/PlayForm.svg" alt="PlayForm" /></a></td>
 			<td align="left" valign="middle"><a href="https://NLnet.NL"><img width="240" src="https://NLnet.NL/logo/banner.svg" alt="NLnet" /></a></td>
 			<td align="left" valign="middle"><a href="https://NLnet.NL/commonsfund"><img width="240" src="https://NLnet.NL/image/logos/NGI0CommonsFund_tag_black_mono.svg" alt="NGI0 Commons Fund" /></a></td>
