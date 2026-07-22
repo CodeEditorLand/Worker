@@ -33,6 +33,7 @@ const BASE_REMOTE =
 
 const Log = __DEV__
 	? (..._Message: any[]) => {
+
 			console.log(
 				`[Worker ${INCREMENT}]`,
 
@@ -41,10 +42,12 @@ const Log = __DEV__
 				..._Message,
 			);
 		}
+
 	: () => {};
 
 const ErrorLog = __DEV__
 	? (..._Message: any[]) => {
+
 			console.error(
 				`[Worker ${INCREMENT}]`,
 
@@ -53,10 +56,12 @@ const ErrorLog = __DEV__
 				..._Message,
 			);
 		}
+
 	: () => {};
 
 const WarnLog = __DEV__
 	? (..._Message: any[]) => {
+
 			console.warn(
 				`[Worker ${INCREMENT}]`,
 
@@ -65,12 +70,14 @@ const WarnLog = __DEV__
 				..._Message,
 			);
 		}
+
 	: () => {};
 
 // Telemetry bridge - lazy load so prod bundle drops it via __DEV__ tree-shake.
 let WorkerTelemetry: typeof import("./Telemetry/Bridge.js") | undefined;
 
 if (__DEV__) {
+
 	void import("./Telemetry/Bridge.js")
 		.then((Module) => {
 			WorkerTelemetry = Module;
