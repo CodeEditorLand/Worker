@@ -24,7 +24,7 @@
 		"prepublishOnly": "sh Source/prepublishOnly.sh"
 	},
 	"dependencies": {
-		"deepmerge-ts": "8.0.1"
+		"deepmerge-ts": "8.0.2"
 	},
 	"devDependencies": {
 		"@playform/build": "0.3.4",
