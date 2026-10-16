@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 Build "Source/Configuration/**/*.ts" \
 	--ESBuild Source/Configuration/ESBuild/Worker.ts

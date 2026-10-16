@@ -20,11 +20,11 @@
 	"sideEffects": true,
 	"type": "module",
 	"scripts": {
-		"Run": "sh Source/Run.sh",
-		"prepublishOnly": "sh Source/prepublishOnly.sh"
+		"Run": "bash Source/Run.sh",
+		"prepublishOnly": "bash Source/prepublishOnly.sh"
 	},
 	"dependencies": {
-		"deepmerge-ts": "7.1.6"
+		"deepmerge-ts": "8.0.2"
 	},
 	"devDependencies": {
 		"@playform/build": "0.3.4",
