@@ -9,7 +9,8 @@
 		"moduleResolution": "Bundler",
 		"outDir": "Target",
 		"rootDir": "./Source",
-		"target": "ESNext"
+		"target": "ESNext",
+		"composite": true
 	},
 	"exclude": ["Target", "node_modules"],
 	"extends": "@playform/build/tsconfig",
