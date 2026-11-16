@@ -17,3 +17,5 @@ Configuration/
 # IDE
 .vscode/
 .idea/
+
+tsconfig.tsbuildinfo
