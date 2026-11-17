@@ -9,13 +9,13 @@
 				</picture>
 			</h3>
 		</td>
-		<td colspan="3" valign="top"><h3 align="center">Worker&#x2001;🍩</h3></td>
+		<td colspan="3" valign="top"><h3 align="center">Worker</h3></td>
 	</tr>
 </table>
 
 ---
 
-# **Worker**&#x2001;🍩&#x2001;Architecture
+# **Worker** Architecture
 
 `Worker` is the service worker for `Land`.
 
@@ -40,31 +40,39 @@
 
 ```mermaid
 graph TB
-    subgraph Worker["Service Worker"]
-        SW["Worker/Worker.ts<br/>Main SW script<br/>fetch interception"]
+    SKY["Sky"]:::client -->|"navigator.serviceWorker.register"| REG["Worker/Register.ts<br/>Registration + update"]:::worker
+
+    subgraph WorkerSW["Worker - Service Worker"]
+        SW["Worker/Worker.ts<br/>Main SW script<br/>fetch interception"]:::worker
 
         subgraph CACHE["Caching Strategy"]
-            CC["CACHE_CORE<br/>Network-first<br/>HTML pages"]
-            CA["CACHE_ASSET<br/>Cache-first (7d)<br/>JS / CSS / fonts"]
-            CE["CACHE_EXT<br/>Cache-first (24h)<br/>extension assets"]
+            CC["CACHE_CORE<br/>Network-first<br/>HTML pages"]:::cache
+            CA["CACHE_ASSET<br/>Cache-first 7d<br/>JS / CSS / fonts"]:::cache
+            CE["CACHE_EXT<br/>Cache-first 24h<br/>extension assets"]:::cache
         end
 
-        CSS["Worker/CSS/<br/>CSS Import Interceptor<br/>JS proxy -> &lt;link&gt;"]
-        POL["Worker/Policy.ts<br/>Cache policy defs"]
-        REG["Worker/Register.ts<br/>Registration + update"]
-        TEL["Telemetry/Bridge.ts<br/>SW telemetry"]
+        CSS["Worker/CSS/<br/>CSS Import Interceptor<br/>JS proxy to &lt;link&gt;"]:::worker
+        POL["Worker/Policy.ts<br/>Cache policy defs"]:::worker
+        REGIN["Worker/Register.ts<br/>Registration + update"]:::worker
+        TEL["Telemetry/Bridge.ts<br/>SW telemetry"]:::worker
+
+        SW -->|"route fetch"| CACHE
+        SW --> CSS
+        CACHE --> POL
+        REGIN -->|"registers"| SW
+        TEL -.->|"metrics"| SW
     end
 
-    SW -->|"route fetch"| CACHE
-    SW --> CSS
-    CACHE --> POL
-    REG -->|"registers"| SW
-    TEL -.->|"metrics"| SW
-    SKY["Sky"] -->|"navigator.serviceWorker.register"| REG
-    CSS -->|"?Skip=Intercept"| BROWSER["Browser &lt;link&gt; loading"]
+    CSS -->|"?Skip=Intercept"| BROWSER["Browser &lt;link&gt; loading"]:::client
+
+    classDef worker fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+    classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef cache fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
 ```
 
-## Overview&#x2001;📋
+---
+
+## Overview 📋
 
 `Worker` is a standalone service worker script with no runtime dependencies.
 
@@ -72,18 +80,28 @@ graph TB
 - It implements a custom CSS import interceptor.
 - It is registered by `Sky` at application startup.
 
-| Attribute    | Value                                  |
-| ------------ | -------------------------------------- |
-| Language     | `TypeScript` (compiled via `ESBuild`)  |
-| Runtime      | `ServiceWorker` API (browser built-in) |
-| Dependencies | None (zero runtime deps)               |
-| Consumed by  | `Sky` (registered at startup)          |
+| Attribute | Value |
+| -------- | -------- |
+| Language | `TypeScript` (compiled via `ESBuild`) |
+| Runtime | `ServiceWorker` API (browser built-in) |
+| Dependencies | None (zero runtime deps) |
+| Consumed by | `Sky` (registered at startup) |
+
+```mermaid
+graph LR
+    ATTR["Worker attributes"]:::main --> LANG["TypeScript via ESBuild"]:::item
+    ATTR --> RT["ServiceWorker API"]:::item
+    ATTR --> DEP["Zero runtime deps"]:::item
+    ATTR --> CONS["Sky at startup"]:::item
+    classDef main fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+    classDef item fill:#cce8ff,stroke:#2980b9,stroke-width:1px,color:#003050;
+```
 
 ---
 
-## Architecture&#x2001;🏗️
+## Architecture 🏗️
 
-```
+```text
 +------------------------------------------------------------------+
 |                       Worker                                      |
 |                                                                   |
@@ -102,34 +120,53 @@ graph TB
 +------------------------------------------------------------------+
 ```
 
-### Module Map&#x2001;🗺️
+```mermaid
+graph TB
+    ENTRY["Worker/Worker.ts<br/>main SW script"]:::worker --> POL["Worker/Policy.ts<br/>policy defs"]:::worker
+    ENTRY --> CSSMOD["Worker/CSS/<br/>CSS loader"]:::worker
+    ENTRY --> REG["Worker/Register.ts<br/>registration"]:::worker
+    ENTRY --> TEL["Telemetry/Bridge.ts<br/>telemetry"]:::worker
+    classDef worker fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+```
 
-| Path                         | Purpose                            |
-| ---------------------------- | ---------------------------------- |
-| `Source/Worker/Worker.ts`    | Main service worker script         |
-| `Source/Worker/CSS/`         | Dynamic CSS loading module         |
-| `Source/Worker/Policy.ts`    | Cache policy definitions           |
-| `Source/Worker/Register.ts`  | Registration and update management |
-| `Source/Telemetry/Bridge.ts` | Service worker telemetry bridge    |
+### Module Map 🗺️
+
+| Path | Purpose |
+| -------- | -------- |
+| `Source/Worker/Worker.ts` | Main service worker script |
+| `Source/Worker/CSS/` | Dynamic CSS loading module |
+| `Source/Worker/Policy.ts` | Cache policy definitions |
+| `Source/Worker/Register.ts` | Registration and update management |
+| `Source/Telemetry/Bridge.ts` | Service worker telemetry bridge |
 
 ---
 
-## Caching Strategy&#x2001;💾
+## Caching Strategy 📦
 
 `Worker` implements a multi-tier caching strategy for different resource types.
 
-### Cache Categories
+### Cache Categories 🗺️
 
-| Cache Name    | Strategy      | Resources                                   | Duration |
-| ------------- | ------------- | ------------------------------------------- | -------- |
-| `CACHE_CORE`  | Network-first | Navigation requests (HTML pages, app shell) | Session  |
-| `CACHE_ASSET` | Cache-first   | Static assets (JS, CSS, fonts, images)      | 7 days   |
-| `CACHE_EXT`   | Cache-first   | Extension assets                            | 24 hours |
-| (none)        | Network-only  | External resources (CDN, API calls)         | N/A      |
+| Cache Name | Strategy | Resources | Duration |
+| -------- | -------- | -------- | -------- |
+| `CACHE_CORE` | Network-first | Navigation requests (HTML pages, app shell) | Session |
+| `CACHE_ASSET` | Cache-first | Static assets (JS, CSS, fonts, images) | 7 days |
+| `CACHE_EXT` | Cache-first | Extension assets | 24 hours |
+| (none) | Network-only | External resources (CDN, API calls) | N/A |
 
-### Network-First Strategy (CACHE_CORE)
-
+```mermaid
+graph TB
+    REQ["Request"]:::client --> CORE["CACHE_CORE<br/>network-first<br/>Session"]:::cache
+    REQ --> ASSET["CACHE_ASSET<br/>cache-first<br/>7 days"]:::cache
+    REQ --> EXT["CACHE_EXT<br/>cache-first<br/>24 hours"]:::cache
+    REQ --> NONE["Network-only<br/>CDN / API"]:::client
+    classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef cache fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
 ```
+
+### Network-First Strategy (CACHE_CORE) ⚙️
+
+```text
 Request navigation (HTML)
     |
     v
@@ -146,9 +183,9 @@ Request navigation (HTML)
             - Return fallback page if not cached
 ```
 
-### Cache-First Strategy (CACHE_ASSET)
+### Cache-First Strategy (CACHE_ASSET) ⚙️
 
-```
+```text
 Request static asset (JS, CSS)
     |
     v
@@ -167,15 +204,15 @@ Request static asset (JS, CSS)
 
 ---
 
-## Dynamic CSS Loading&#x2001;🎨
+## Dynamic CSS Loading 🔬
 
-`Worker` implements a unique CSS loading strategy: JavaScript modules that
+`Worker` implements a unique CSS loading strategy: `JavaScript` modules that
 `import 'styles.css'` are intercepted and served a JS proxy that injects a
 `<link>` element.
 
-### CSS Import Interception
+### CSS Import Interception 🗺️
 
-```
+```text
 JavaScript module imports CSS
   import './styles.css';     // At module scope
     |
@@ -184,9 +221,9 @@ Worker intercepts fetch for styles.css
     |
     +---> Detects CSS import (MIME type or path pattern)
     |
-    +---> Returns generated JS module:
+    +---> Returns produced JS module:
     |
-    |   // Generated by Worker:
+    |   // Produced by Worker:
     |   const link = document.createElement('link');
     |   link.rel = 'stylesheet';
     |   link.href = './styles.css?Skip=Intercept';
@@ -200,13 +237,13 @@ Page receives JS module, not CSS
 CSS loads via native browser <link> element
 ```
 
-### Two-Phase Loading
+### Two-Phase Loading ⚙️
 
 To avoid infinite interception (where `Worker` intercepts the CSS URL, returns
 JS, JS triggers a new CSS fetch that gets intercepted again), `Worker` uses a
 `?Skip=Intercept` query parameter:
 
-```
+```text
 Phase 1: JS module import('styles.css')
     -> Worker intercepts
     -> Returns JS proxy module
@@ -219,22 +256,36 @@ Phase 2: Browser loads styles.css?Skip=Intercept
     -> <link> element loads CSS natively
 ```
 
-### Benefits
+```mermaid
+sequenceDiagram
+    participant JS as JS module
+    participant SW as Worker
+    participant DOM as Browser
+    JS->>SW: import styles.css
+    alt URL lacks ?Skip=Intercept
+        SW-->>JS: produced JS module with link tag
+    else URL has ?Skip=Intercept
+        SW-->>DOM: actual CSS content
+    end
+    DOM->>DOM: apply styles
+```
 
-| Aspect      | Without Worker                  | With Worker                     |
-| ----------- | ------------------------------- | ------------------------------- |
+### Benefits 📊
+
+| Aspect | Without Worker | With Worker |
+| -------- | -------- | -------- |
 | CSS loading | Imported as JS string in bundle | Native browser `<link>` loading |
-| CSS cascade | Bundle-dependent ordering       | Proper cascade via DOM order    |
-| Source maps | Lost during JS bundling         | Preserved via native loading    |
-| Hot reload  | Requires full rebuild           | Works with CSS-only refresh     |
+| CSS cascade | Bundle-dependent ordering | Proper cascade via DOM order |
+| Source maps | Lost during JS bundling | Preserved via native loading |
+| Hot reload | Requires full rebuild | Works with CSS-only refresh |
 
 ---
 
-## Service Worker Lifecycle&#x2001;🔄
+## Service Worker Lifecycle 🚀
 
-### Installation
+### Installation 📦
 
-```
+```text
 1. Sky registers Worker:
     navigator.serviceWorker.register('/worker.js', { scope: '/' })
     |
@@ -248,9 +299,9 @@ Phase 2: Browser loads styles.css?Skip=Intercept
 3. Worker enters waiting state (if existing SW active)
 ```
 
-### Activation
+### Activation 🚀
 
-```
+```text
 4. Sky sends activation signal via postMessage:
     worker.postMessage({ type: 'ACTIVATE' })
     |
@@ -262,9 +313,9 @@ Phase 2: Browser loads styles.css?Skip=Intercept
     - Sends 'activated' response to Sky
 ```
 
-### Update Cycle
+### Update Cycle ⚙️
 
-```
+```text
 6. Sky checks for Worker update periodically:
     navigator.serviceWorker.register('/worker.js')
     |
@@ -277,7 +328,7 @@ Phase 2: Browser loads styles.css?Skip=Intercept
 8. Sky decides when to activate:
     - Immediately (during development)
     - On next navigation (during production)
-    - User prompt (configurable)
+    - User message (configurable)
     |
     v
 9. New Worker activates:
@@ -286,13 +337,24 @@ Phase 2: Browser loads styles.css?Skip=Intercept
     - Old caches deleted
 ```
 
+```mermaid
+graph LR
+    REG["Sky registers Worker"]:::client --> INST["Install event<br/>precache core assets"]:::worker
+    INST --> WAIT["Waiting state"]:::worker
+    WAIT --> ACT["Activate event<br/>claim clients"]:::worker
+    ACT --> UPD["Update cycle<br/>periodic checks"]:::worker
+    UPD --> NEW["New Worker activates"]:::worker
+    classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef worker fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+```
+
 ---
 
-## Client Scripts&#x2001;📜
+## Client Scripts 🧩
 
 `Worker` provides client-side scripts for integration.
 
-### Register.ts
+### `Register.ts` 📋
 
 Handles service worker registration and update management:
 
@@ -319,35 +381,43 @@ export async function registerWorker(): Promise<ServiceWorkerRegistration> {
 }
 ```
 
----
-
-## Related Documentation&#x2001;📚
-
-- [Sky](https://github.com/CodeEditorLand/Sky/tree/Current/Documentation/GitHub/Architecture.md) -
-  UI layer (`Worker` consumer)
-- [Wind](https://github.com/CodeEditorLand/Wind/tree/Current/Documentation/GitHub/Architecture.md) -
-  Service layer (`Worker` integration)
-- [BuildPipeline](https://github.com/CodeEditorLand/Land/tree/Current/Documentation/GitHub/BuildPipeline.md) -
-  Build pipeline
-- [Polyfills](https://github.com/CodeEditorLand/Land/tree/Current/Documentation/GitHub/Polyfills.md) -
-  Polyfill layers
+```mermaid
+graph LR
+    PAGE["Sky page"]:::client --> REG["registerWorker<br/>navigator.serviceWorker.register"]:::worker
+    REG --> UF["updatefound listener"]:::worker
+    UF --> SC["statechange installed"]:::worker
+    SC --> DISP["dispatchWorkerUpdate"]:::worker
+    classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef worker fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+```
 
 ---
 
-## Shim Compatibility
+## Shim Compatibility ⚙️
 
-| 🟠 Low-Level Shim             | 🔵 Coverage Shim                |
-| ----------------------------- | ------------------------------- |
+| Low-Level Shim | Coverage Shim |
+| -------- | -------- |
 | Tier: `TierShim=Own\|Preempt` | Tier: `TierShim=Proxy\|Replace` |
-| Engine prototype hooks        | Service routing + audit         |
+| Engine prototype hooks | Service routing + audit |
 
-> This Element supports the Land deep-shim interception system. Gated behind
+> This Element supports the `Land` deep-shim interception system. Gated behind
 > `TierShim` env var (default: `None` - zero overhead).
 >
 > **Worker shim architecture:** No shim-specific modules - service worker, not
 > affected by engine hooks.
 
 ---
+
+## Related Documentation 📖
+
+- [`Sky`](https://github.com/CodeEditorLand/Sky/tree/Current/Documentation/GitHub/Architecture.md) -
+  UI layer (`Worker` consumer)
+- [`Wind`](https://github.com/CodeEditorLand/Wind/tree/Current/Documentation/GitHub/Architecture.md) -
+  Service layer (`Worker` integration)
+- [BuildPipeline](https://github.com/CodeEditorLand/Land/tree/Current/Documentation/GitHub/BuildPipeline.md) -
+  Build pipeline
+- [Polyfills](https://github.com/CodeEditorLand/Land/tree/Current/Documentation/GitHub/Polyfills.md) -
+  Polyfill layers
 
 **Project Maintainers:** Source Open
 ([Source/Open@Editor.Land](mailto:Source/Open@Editor.Land)) |

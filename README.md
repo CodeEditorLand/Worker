@@ -1,4 +1,4 @@
-# **Worker**&#x2001;🍩
+# **Worker**
 
 <table>
 	<tr>
@@ -39,8 +39,8 @@
 	</tr>
 </table>
 
-The Service Worker for Land - asset caching, offline support, and dynamic CSS
-loading&#x2001;🏞️
+The `Service Worker` for `Land` - asset caching, offline support, and dynamic
+CSS loading
 
 > **Web applications that lose authentication state on network drops force users
 > to re-authenticate. Tokens stored in plaintext are accessible to any script
@@ -53,22 +53,22 @@ _"Offline-capable. Auth tokens encrypted. Auto-refreshed."_
 
 ---
 
-## Overview
+## Overview 📋
 
-**Worker**&#x2001;🍩 is the Service Worker for the **Land**&#x2001;🏞️ Code
-Editor that enhances web application performance and reliability through
-advanced caching, offline support, and a unique strategy for handling dynamic
-CSS imports from JavaScript modules. It intercepts fetch events within the Tauri
-WebView through policy-based routing, serving cached assets and generating
-CSS-loader JavaScript shims on the fly.
+`Worker` is the `Service Worker` for the `Land` Code Editor that enhances web
+application performance and reliability through advanced caching, offline
+support, and a unique strategy for handling dynamic CSS imports from
+`JavaScript` modules. It intercepts fetch events within the `Tauri` WebView
+through policy-based routing, serving cached assets and producing CSS-loader
+`JavaScript` shims on the fly.
 
 Web applications that lose connectivity force users to stare at blank screens
-and re-authenticate. Worker solves this by implementing multiple caching
-strategies (`network-first` for navigation, `cache-first` for static assets) and
-encrypting authentication tokens at rest in cache storage - no script on the
-page can read them.
+and re-authenticate. `Worker` solves this by implementing multiple caching
+strategies (`network-first` for navigation, `cache-first` for static assets)
+and encrypting authentication tokens at rest in cache storage - no script on
+the page can read them.
 
-**Worker is engineered to:**
+`Worker` is engineered to:
 
 1. **Implement Multi-Strategy Asset Caching** - `network-first` for navigation
    requests (always fresh app shell) and `cache-first` for static assets under
@@ -76,61 +76,90 @@ page can read them.
    the install-time precache list is intentionally empty (see
    [Caching Strategies](#caching-strategies)).
 2. **Enable Full Offline Support** - Serve the entire application shell and all
-   cached assets without network connectivity, with transparent fallback through
-   the `Cache Storage` API.
-3. **Handle Dynamic CSS Loading** - Intercept JavaScript `import` of CSS modules
-   and respond with generated JavaScript that triggers standard `<link>` tag
-   injection, bypassing the browser's restrictions on dynamic CSS imports.
-4. **Support Automatic Updates** - Detect new Service Worker versions, validate
-   Trusted Types policy, and prompt clients to reload for seamless version
-   transitions without data loss.
+   cached assets without network connectivity, with transparent fallback
+   through the `Cache Storage` API.
+3. **Handle Dynamic CSS Loading** - Intercept `JavaScript` `import` of CSS
+   modules and respond with produced `JavaScript` that triggers standard
+   `<link>` tag injection, bypassing the browser's restrictions on dynamic CSS
+   imports.
+4. **Support Automatic Updates** - Detect new `Service Worker` versions,
+   validate `Trusted Types` policy, and message clients to reload for seamless
+   version transitions without data loss.
+
+```mermaid
+graph LR
+    classDef worker fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+    classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef cache fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
+
+    SKY["Sky<br/>Astro page"]:::client --> REG["Register.ts<br/>registration"]:::worker
+    REG --> POL["Policy.ts<br/>fetch routing"]:::worker
+    POL --> CORE["CACHE_CORE<br/>network-first"]:::cache
+    POL --> ASSET["CACHE_ASSET<br/>cache-first"]:::cache
+    POL --> TELE["Bridge.ts<br/>PostHog + OTLP"]:::worker
+    ASSET --> APP["Main app<br/>CSS imports"]:::client
+```
 
 ---
 
-## Key Features&#x2001;🔐
+## Key Features 🔐
 
 **`Core` Cache (`CACHE_CORE`)** - Network-first strategy for navigation requests
 under the `/Application` scope. Falls back to cache when the network is
 unavailable, ensuring the application shell always loads. The install-time
 precache list is currently empty - the `/Application` scope itself is reached
-via SPA fallback rather than an explicit precached asset, and Vite/Astro bundle
-the `Worker/*.js` scripts into a hashed chunk so the old standalone precache
-paths no longer exist on disk.
+via SPA fallback rather than an explicit precached asset, and `Vite`/`Astro`
+bundle the `Worker/*.js` scripts into a hashed chunk so the old standalone
+precache paths no longer exist on disk.
 
 **`Asset` Cache (`CACHE_ASSET`)** - Cache-first strategy for static resources
-under `/Static/Application/*`. Stores JavaScript, CSS, images, fonts, and
-dynamically generated JS modules (the CSS-loader shims) with version-aware cache
+under `/Static/Application/*`. Stores `JavaScript`, CSS, images, fonts, and
+dynamically produced JS modules (the CSS-loader shims) with version-aware cache
 keys tied to build increments.
 
 **Dynamic CSS Loading Pipeline** - Two-pass interception system that transforms
 `import './styles.css'` into a `<link rel="stylesheet">` tag without infinite
-loops. Pass 1 intercepts the CSS import and returns a JavaScript shim calling
+loops. Pass 1 intercepts the CSS import and returns a `JavaScript` shim calling
 `window._LOAD_CSS_WORKER`. Pass 2 detects the `?Skip=Intercept` query parameter
 and serves the real CSS from cache.
 
 **Trusted Types Integration** - Full CSP-compatible `Trusted Types` enforcement
-through a dedicated `WorkerApplication` policy. Service worker script URLs are
+through a dedicated `WorkerApplication` policy. `Service Worker` script URLs are
 validated against a regex allowlist before being passed to
 `navigator.serviceWorker.register`, preventing DOM XSS via injected SW paths.
 
 **`PostHog` Telemetry Bridge** - Dual-pipe telemetry (`PostHog` capture + `OTLP`
-traces) from inside the service worker context. Uses the `fetch` API directly
-(no Node.js HTTP, no CDN-loaded SDKs - service workers cannot load scripts
+traces) from inside the `Service Worker` context. Uses the `fetch` API directly
+(no `Node.js` HTTP, no CDN-loaded SDKs - service workers cannot load scripts
 post-install) with build-baked endpoint and key from `import.meta.env`.
 
 **Increment-Aware Cache Keys** - All cache names are tagged with the build
 increment (`Core-{INCREMENT}`, `Asset-{INCREMENT}`), enabling clean cache
 cut-over on new deployments without stale data from previous versions.
 
+```mermaid
+graph TB
+    ROOT["Worker"]:::main --> CORE["CACHE_CORE<br/>network-first"]:::cache
+    ROOT --> ASSET["CACHE_ASSET<br/>cache-first"]:::cache
+    ROOT --> CSS["Dynamic CSS<br/>two-pass pipeline"]:::worker
+    ROOT --> TT["Trusted Types<br/>WorkerApplication"]:::sec
+    ROOT --> TEL["PostHog + OTLP<br/>telemetry"]:::worker
+    ROOT --> INC["Increment-aware<br/>cache keys"]:::cache
+    classDef main fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+    classDef worker fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef cache fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
+    classDef sec fill:#ffe0c0,stroke:#d35400,stroke-width:1px,color:#4a2000;
+```
+
 ---
 
-## Dynamic CSS Loading - Details
+## Dynamic CSS Loading - Details 🔬
 
 This worker implements a specific two-pass strategy to handle dynamic CSS
-imports from JavaScript modules (e.g., `import './some-styles.css';`) located
+imports from `JavaScript` modules (e.g., `import './some-styles.css';`) located
 under `/Static/Application/`.
 
-### The Workflow
+### The Workflow 🗺️
 
 1. **Initial JS Import** - A JS module attempts to `import` a CSS file under
    `/Static/Application/`.
@@ -138,7 +167,7 @@ under `/Static/Application/`.
    request. Because the URL matches `/Static/Application/*.css` and lacks
    `?Skip=Intercept`, it proceeds with the CSS handling logic.
 3. **Service Worker Responds with JS** - The worker responds with a dynamically
-   generated JavaScript module:
+   produced `JavaScript` module:
     ```javascript
     window._LOAD_CSS_WORKER("/Static/Application/CodeEditorLand/component.css");
     export default {};
@@ -155,16 +184,34 @@ under `/Static/Application/`.
 7. **Browser Fetches CSS** - The browser initiates a second fetch with
    `?Skip=Intercept`.
 8. **Service Worker Intercept #2** - The worker detects `?Skip=Intercept`,
-   bypasses JS generation, and serves the actual CSS via cache-first strategy.
+   bypasses JS shim production, and serves the actual CSS via cache-first
+   strategy.
 9. **Browser Applies Styles** - The browser receives and applies the real CSS
    (`Content-Type: text/css`).
 
 This two-step fetch process, distinguished by the `?Skip=Intercept` parameter,
-allows the initial JavaScript import to resolve quickly while triggering the
+allows the initial `JavaScript` import to resolve quickly while triggering the
 standard browser mechanism for loading actual CSS without infinite interception
 loops.
 
-### HTML Integration Example
+```mermaid
+sequenceDiagram
+    participant App as Main app
+    participant SW as Worker
+    participant Cache as CACHE_ASSET
+    participant DOM as Browser DOM
+    App->>SW: import CSS module
+    alt URL lacks ?Skip=Intercept
+        SW->>Cache: store JS shim under CSS URL
+        SW-->>App: JS module with _LOAD_CSS_WORKER
+        App->>DOM: create link with ?Skip=Intercept
+    else URL has ?Skip=Intercept
+        SW->>Cache: match real CSS
+        SW-->>DOM: serve text/css
+    end
+```
+
+### HTML Integration Example 🔌
 
 ```html
 <!DOCTYPE html>
@@ -191,55 +238,80 @@ loops.
 
 ---
 
-## Caching Strategies&#x2001;📦
+## Caching Strategies 📦
 
-| Strategy          | Cache Name    | URL Pattern                               | Behavior                                                                                                  |
-| ----------------- | ------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Network-First** | `CACHE_CORE`  | `/Application` (navigation)               | Try network first, fall back to cache. Ensures fresh app shell while providing offline resilience.        |
-| **Cache-First**   | `CACHE_ASSET` | `/Static/Application/*` (CSS, JS, images) | Serve from cache if available, fetch and cache if missing. Generates JS shims for CSS imports on the fly. |
-| **Pass-Through**  | -             | Cross-origin requests                     | Network-only, no caching. Third-party resources are not intercepted.                                      |
+| Strategy | Cache Name | URL Pattern | Behavior |
+| -------- | -------- | -------- | -------- |
+| **Network-First** | `CACHE_CORE` | `/Application` (navigation) | Try network first, fall back to cache. Ensures fresh app shell while providing offline resilience. |
+| **Cache-First** | `CACHE_ASSET` | `/Static/Application/*` (CSS, JS, images) | Serve from cache if available, fetch and cache if missing. Produces JS shims for CSS imports on the fly. |
+| **Pass-Through** | - | Cross-origin requests | Network-only, no caching. Third-party resources are not intercepted. |
 
 Cache names include the build increment for clean cut-over: `Core-{INCREMENT}`
 and `Asset-{INCREMENT}`.
 
+```mermaid
+graph LR
+    REQ["Request"]:::client --> MODE{"Mode?"}:::dec
+    MODE -->|navigate| CORE["CACHE_CORE<br/>network-first"]:::cache
+    MODE -->|static asset| ASSET["CACHE_ASSET<br/>cache-first"]:::cache
+    MODE -->|cross-origin| NET["Pass-through<br/>network-only"]:::client
+    CORE --> OFF["Cache fallback<br/>offline"]:::cache
+    ASSET --> SHIM["JS shim for CSS imports"]:::cache
+    classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef dec fill:#fff0c0,stroke:#d4a017,stroke-width:2px,color:#4a3400;
+    classDef cache fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
+```
+
 ---
 
-## Core Architecture Principles&#x2001;🏗️
+## Core Architecture Principles 🏗️
 
-| Principle                    | Description                                                                                                                                                                                                                              | Key Components                                                                       |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **Policy-Based Routing**     | All fetch events are routed through `Policy.ts`, which matches URL patterns to caching strategies. Each route gets a specific cache name and strategy (network-first, cache-first, stale-while-revalidate).                              | `Source/Worker.ts`, `Source/Worker/Policy.ts`                                        |
-| **Build-Time Configuration** | `__DEV__` and `__INCREMENT__` are injected at build time by ESBuild's `define`, eliminating runtime config parsing for those flags. `BASE_REMOTE` is resolved at runtime from a `BASE_REMOTE` query parameter or `self.location.origin`. | `Source/Configuration/ESBuild/Worker.ts`, `Source/Configuration/ESBuild/Target.ts`   |
-| **CSS Import Interception**  | Transform JavaScript CSS imports into browser-native `<link>` tag loading through a two-pass interception pipeline (shim response → `?Skip=Intercept` → real CSS).                                                                       | `Source/Worker.ts` (fetch handler), `Source/Worker/CSS/Load.ts` (client-side loader) |
-| **Safe Registration**        | Service worker registration validates Trusted Types policy before calling `navigator.serviceWorker.register`, handles scope navigation, and detects SW updates through periodic checks.                                                  | `Source/Worker/Register.ts`, `Source/Worker/Policy.ts`                               |
-| **Observability**            | Service-worker-level telemetry bridges (`PostHog` events + `OTLP` spans) that operate within the constrained SW environment - no SDKs, no CDN scripts, just raw `fetch`.                                                                 | `Source/Telemetry/Bridge.ts`                                                         |
+| Principle | Description | Key Components |
+| -------- | -------- | -------- |
+| **Policy-Based Routing** | All fetch events are routed through `Policy.ts`, which matches URL patterns to caching strategies. Each route gets a specific cache name and strategy (`network-first`, `cache-first`, `stale-while-revalidate`). | `Source/Worker.ts`, `Source/Worker/Policy.ts` |
+| **Build-Time Configuration** | `__DEV__` and `__INCREMENT__` are injected at build time by `ESBuild`'s `define`, eliminating runtime config parsing for those flags. `BASE_REMOTE` is resolved at runtime from a `BASE_REMOTE` query parameter or `self.location.origin`. | `Source/Configuration/ESBuild/Worker.ts`, `Source/Configuration/ESBuild/Target.ts` |
+| **CSS Import Interception** | Transform `JavaScript` CSS imports into browser-native `<link>` tag loading through a two-pass interception pipeline (shim response, then `?Skip=Intercept`, then real CSS). | `Source/Worker.ts` (fetch handler), `Source/Worker/CSS/Load.ts` (client-side loader) |
+| **Safe Registration** | `Service Worker` registration validates `Trusted Types` policy before calling `navigator.serviceWorker.register`, handles scope navigation, and detects SW updates through periodic checks. | `Source/Worker/Register.ts`, `Source/Worker/Policy.ts` |
+| **Observability** | Service-worker-level telemetry bridges (`PostHog` events + `OTLP` spans) that operate within the constrained SW environment - no SDKs, no CDN scripts, just raw `fetch`. | `Source/Telemetry/Bridge.ts` |
+
+```mermaid
+graph LR
+    FETCH["fetch event"]:::client --> POL["Policy.ts<br/>route by URL pattern"]:::worker
+    POL --> CFG["Build-time config<br/>__DEV__ + __INCREMENT__"]:::cfg
+    POL --> CSSI["CSS import interception<br/>two-pass pipeline"]:::worker
+    POL --> REG["Safe registration<br/>Trusted Types"]:::sec
+    POL --> OBS["Observability<br/>PostHog + OTLP"]:::worker
+    classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef worker fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+    classDef cfg fill:#fff0c0,stroke:#d4a017,stroke-width:1px,color:#4a3400;
+    classDef sec fill:#ffe0c0,stroke:#d35400,stroke-width:1px,color:#4a2000;
+```
 
 ---
 
-## System Architecture
+## System Architecture 🗺️
 
 ```mermaid
 graph LR
     classDef worker fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
     classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
-    classDef cache  fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
-    classDef sky    fill:#9cf,stroke:#2471a3,stroke-width:1px,stroke-dasharray:5 5,color:#001040;
+    classDef cache fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
 
-    subgraph SKY["Sky 🌌 - Astro Page (Tauri WebView)"]
-        HTMLPage["index.astro loads Load.js + Register.js"]:::sky
-        MainApp["workbench JS (dynamic CSS imports)"]:::sky
+    subgraph SKY["Sky - Astro Page (Tauri WebView)"]
+        HTMLPage["index.astro loads Load.js + Register.js"]:::client
+        MainApp["workbench JS with dynamic CSS imports"]:::client
     end
 
-    subgraph SW["Worker 🍩 - Service Worker (Worker.ts / Policy.ts)"]
+    subgraph SW["Worker - Service Worker (Worker.ts / Policy.ts)"]
         direction TB
-        Register["Register.ts 📋 registration + update detection scope /Application"]:::worker
-        Policy["Policy.ts 🛡️ fetch event handler routes by URL pattern"]:::worker
+        Register["Register.ts<br/>registration + update detection scope /Application"]:::worker
+        Policy["Policy.ts<br/>fetch event handler routes by URL pattern"]:::worker
         subgraph CACHES["Cache Storage"]
-            CoreCache["CACHE_CORE 🌐 network-first /Application/ navigation"]:::cache
-            AssetCache["CACHE_ASSET 📦 cache-first /Static/Application/* CSS + JS"]:::cache
+            CoreCache["CACHE_CORE<br/>network-first /Application/ navigation"]:::cache
+            AssetCache["CACHE_ASSET<br/>cache-first /Static/Application/* CSS + JS"]:::cache
         end
-        CSSLoad["Worker/CSS/Load.ts 🎨 window._LOAD_CSS_WORKER client-side link tag injector"]:::worker
-        Telemetry["Telemetry/Bridge.ts 📊 PostHog + OTLP SW-level dual-pipe"]:::worker
+        CSSLoad["Worker/CSS/Load.ts<br/>window._LOAD_CSS_WORKER link tag injector"]:::worker
+        Telemetry["Telemetry/Bridge.ts<br/>PostHog + OTLP dual-pipe"]:::worker
 
         Register --> Policy
         Policy --> CoreCache
@@ -251,114 +323,114 @@ graph LR
     HTMLPage -- registers --> Register
     HTMLPage -- defines _LOAD_CSS_WORKER --> CSSLoad
     MainApp -- import .css --> Policy
-    Policy -- JS module response export default + _LOAD_CSS_WORKER call --> MainApp
+    Policy -- JS module response export default plus _LOAD_CSS_WORKER call --> MainApp
     MainApp -- link rel=stylesheet URL?Skip=Intercept --> Policy
     Policy -- cache-first real CSS --> MainApp
 ```
 
 **Connection paths:**
 
-| Path                               | Protocol                                                | Use Case                                                  |
-| ---------------------------------- | ------------------------------------------------------- | --------------------------------------------------------- |
-| Sky → Worker (registration)        | Service Worker API (`navigator.serviceWorker.register`) | Bootstrap and update lifecycle                            |
-| Sky → Worker (fetch interceptions) | `self.addEventListener('fetch')`                        | Routing all page requests through caching strategies      |
-| Worker → Cache Storage             | `Cache API` (`caches.open`, `cache.put`, `cache.match`) | Storing and retrieving cached assets                      |
-| Worker → PostHog                   | `fetch` to `/capture/`                                  | Telemetry events from SW context                          |
-| Worker → OTLP Collector            | `fetch` to `/v1/traces`                                 | Distributed tracing spans from SW context                 |
-| Main App → CSS Loader              | `window._LOAD_CSS_WORKER(url)`                          | Triggering `<link>` tag injection for dynamic CSS imports |
+| Path | Protocol | Use Case |
+| -------- | -------- | -------- |
+| `Sky` to `Worker` (registration) | `Service Worker API` (`navigator.serviceWorker.register`) | Bootstrap and update lifecycle |
+| `Sky` to `Worker` (fetch interceptions) | `self.addEventListener('fetch')` | Routing all page requests through caching strategies |
+| `Worker` to `Cache Storage` | `Cache API` (`caches.open`, `cache.put`, `cache.match`) | Storing and retrieving cached assets |
+| `Worker` to `PostHog` | `fetch` to `/capture/` | Telemetry events from SW context |
+| `Worker` to `OTLP Collector` | `fetch` to `/v1/traces` | Distributed tracing spans from SW context |
+| Main App to CSS Loader | `window._LOAD_CSS_WORKER(url)` | Triggering `<link>` tag injection for dynamic CSS imports |
 
 ---
 
-## Key Components
+## Key Components 🧩
 
-| Component        | Path                                     | Description                                                                        |
-| ---------------- | ---------------------------------------- | ---------------------------------------------------------------------------------- |
-| Worker Entry     | `Source/Worker.ts`                       | Service worker entry: caching strategies, fetch interception, CSS import handling  |
-| Policy           | `Source/Worker/Policy.ts`                | `Trusted Types` policy (`WorkerApplication`) for secure script URL creation        |
-| Register         | `Source/Worker/Register.ts`              | Service worker registration, update detection, scope navigation, activation        |
-| CSS Loader       | `Source/Worker/CSS/Load.ts`              | Client-side CSS loader function (`window._LOAD_CSS_WORKER`) for `<link>` injection |
-| ESBuild Config   | `Source/Configuration/ESBuild/Worker.ts` | Build-time ESBuild configuration: define constants, format, minification           |
-| ESBuild Target   | `Source/Configuration/ESBuild/Target.ts` | Target definitions and output path configuration                                   |
-| Telemetry Bridge | `Source/Telemetry/Bridge.ts`             | `PostHog` + `OTLP` dual-pipe telemetry from service worker context                 |
-| Build Script     | `Source/prepublishOnly.sh`               | Build orchestration: ESBuild compile + artifact placement                          |
-| Dev Script       | `Source/Run.sh`                          | Development watch mode with ESBuild                                                |
+| Component | Path | Description |
+| -------- | -------- | -------- |
+| Worker Entry | `Source/Worker.ts` | Service worker entry: caching strategies, fetch interception, CSS import handling |
+| Policy | `Source/Worker/Policy.ts` | `Trusted Types` policy (`WorkerApplication`) for secure script URL creation |
+| Register | `Source/Worker/Register.ts` | Service worker registration, update detection, scope navigation, activation |
+| CSS Loader | `Source/Worker/CSS/Load.ts` | Client-side CSS loader function (`window._LOAD_CSS_WORKER`) for `<link>` injection |
+| ESBuild Config | `Source/Configuration/ESBuild/Worker.ts` | Build-time `ESBuild` configuration: define constants, format, minification |
+| ESBuild Target | `Source/Configuration/ESBuild/Target.ts` | Target definitions and output path configuration |
+| Telemetry Bridge | `Source/Telemetry/Bridge.ts` | `PostHog` + `OTLP` dual-pipe telemetry from service worker context |
+| Build Script | `Source/prepublishOnly.sh` | Build orchestration: `ESBuild` compile + artifact placement |
+| Dev Script | `Source/Run.sh` | Development watch mode with `ESBuild` |
 
 ---
 
-## Project Structure&#x2001;🗺️
+## Project Structure 🗺️
 
-```
+```text
 Element/Worker/
-├── Source/
-│   ├── Worker.ts                       # Service worker entry: caching strategies, interception logic
-│   ├── Worker/
-│   │   ├── Policy.ts                   # Trusted Types policy for secure script URL creation
-│   │   ├── Register.ts                 # Service worker registration, update detection, activation
-│   │   └── CSS/
-│   │       └── Load.ts                 # Client-side CSS loader (window._LOAD_CSS_WORKER)
-│   ├── Configuration/
-│   │   └── ESBuild/
-│   │       ├── Worker.ts               # ESBuild build-time configuration
-│   │       └── Target.ts               # Target definitions and output path config
-│   ├── Telemetry/
-│   │   └── Bridge.ts                   # PostHog + OTLP dual-pipe telemetry bridge
-│   ├── prepublishOnly.sh               # Build orchestration script
-│   └── Run.sh                          # Development watch mode
-├── Target/                             # Build output (JS + source maps + declarations)
-│   ├── Worker.js
-│   ├── Worker/
-│   │   ├── Policy.js
-│   │   ├── Register.js
-│   │   └── CSS/Load.js
-│   ├── Configuration/ESBuild/
-│   │   ├── Target.js
-│   │   └── Worker.js
-│   └── Telemetry/Bridge.js
-├── Documentation/
-│   └── GitHub/
-│       ├── Architecture.md             # Internal module architecture
-│       └── DeepDive.md                 # Technical deep-dive into caching strategies
-├── Configuration/
-│   └── ESBuild/
-│       ├── Target.js                   # Target definitions (compiled)
-│       └── Worker.js                   # ESBuild config (compiled)
-├── .github/                            # CI workflows (GitHub, Auto, Dependabot)
-├── package.json                        # NPM package metadata + scripts
-├── tsconfig.json                       # TypeScript configuration
-├── CHANGELOG.md                        # Version history
-└── README.md                           # This file
+|-- Source/
+|   |-- Worker.ts                       # Service worker entry: caching strategies, interception logic
+|   |-- Worker/
+|   |   |-- Policy.ts                   # Trusted Types policy for secure script URL creation
+|   |   |-- Register.ts                 # Service worker registration, update detection, activation
+|   |   `-- CSS/
+|   |       `-- Load.ts                 # Client-side CSS loader (window._LOAD_CSS_WORKER)
+|   |-- Configuration/
+|   |   `-- ESBuild/
+|   |       |-- Worker.ts               # ESBuild build-time configuration
+|   |       `-- Target.ts               # Target definitions and output path config
+|   |-- Telemetry/
+|   |   `-- Bridge.ts                   # PostHog + OTLP dual-pipe telemetry bridge
+|   |-- prepublishOnly.sh               # Build orchestration script
+|   `-- Run.sh                          # Development watch mode
+|-- Target/                             # Build output (JS + source maps + declarations)
+|   |-- Worker.js
+|   |-- Worker/
+|   |   |-- Policy.js
+|   |   |-- Register.js
+|   |   `-- CSS/Load.js
+|   |-- Configuration/ESBuild/
+|   |   |-- Target.js
+|   |   `-- Worker.js
+|   `-- Telemetry/Bridge.js
+|-- Documentation/
+|   `-- GitHub/
+|       |-- Architecture.md             # Internal module architecture
+|       `-- DeepDive.md                 # Technical deep-dive into caching strategies
+|-- Configuration/
+|   `-- ESBuild/
+|       |-- Target.js                   # Target definitions (compiled)
+|       `-- Worker.js                   # ESBuild config (compiled)
+|-- .github/                            # CI workflows (GitHub, Auto, Dependabot)
+|-- package.json                        # NPM package metadata + scripts
+|-- tsconfig.json                       # TypeScript configuration
+|-- CHANGELOG.md                        # Version history
+`-- README.md                           # This file
 ```
 
 ---
 
-## In the Land Project
+## In the Land Project 🌐
 
-`Worker`&#x2001;🍩 is registered from the `Sky`&#x2001;🌌 Astro page and
-intercepts fetch events within the Tauri WebView to cache static assets and
-handle dynamic CSS imports. It operates as an independent service worker script
-that runs in a separate thread from the main application, providing offline
-resilience without blocking the UI.
+`Worker` is registered from the `Sky` Astro page and intercepts fetch events
+within the `Tauri` WebView to cache static assets and handle dynamic CSS
+imports. It operates as an independent service worker script that runs in a
+separate thread from the main application, providing offline resilience without
+blocking the UI.
 
-| Element            | Relationship                                                           | Protocol                                             |
-| ------------------ | ---------------------------------------------------------------------- | ---------------------------------------------------- |
-| **Sky**&#x2001;🌌  | Registers the service worker, defines `window._LOAD_CSS_WORKER`        | `navigator.serviceWorker.register`, `window._WORKER` |
-| **Wind**&#x2001;🍃 | Indirect dependency via page context (workbench JS served through Sky) | Same-origin fetch, CSP headers                       |
-| **End Users**      | Consumed by (caching/offline experience, dynamic CSS loading)          | Service Worker API, `Cache Storage`                  |
+| Element | Relationship | Protocol |
+| -------- | -------- | -------- |
+| `Sky` | Registers the service worker, defines `window._LOAD_CSS_WORKER` | `navigator.serviceWorker.register`, `window._WORKER` |
+| `Wind` | Indirect dependency via page context (workbench JS served through Sky) | Same-origin fetch, CSP headers |
+| End Users | Consumed by (caching/offline experience, dynamic CSS loading) | `Service Worker API`, `Cache Storage` |
 
-Worker's caching strategies are scoped to `/Application` and
+`Worker`'s caching strategies are scoped to `/Application` and
 `/Static/Application/*`, ensuring that only Land's own assets pass through the
 policy routing - third-party requests are passed through untouched.
 
 ---
 
-## Getting Started&#x2001;🚀
+## Getting Started 🚀
 
-### Prerequisites
+### Prerequisites 📦
 
-- **Node.js** 18 or later
+- `Node.js` 18 or later
 - NPM registry access for `@codeeditorland/worker`
 
-### Build
+### Build 📦
 
 ```bash
 cd Element/Worker
@@ -366,95 +438,90 @@ npm install
 npm run prepublishOnly
 ```
 
-### Development (Watch Mode)
+### Development (Watch Mode) ⚙️
 
 ```bash
 cd Element/Worker
 npm run Run
 ```
 
-### Available Scripts
+### Available Scripts 💻
 
-| Script                   | Description                                            |
-| ------------------------ | ------------------------------------------------------ |
-| `npm run prepublishOnly` | Production build: ESBuild compile + artifact placement |
-| `npm run Run`            | Development watch mode with ESBuild                    |
+| Script | Description |
+| -------- | -------- |
+| `npm run prepublishOnly` | Production build: `ESBuild` compile + artifact placement |
+| `npm run Run` | Development watch mode with `ESBuild` |
 
-### Build Constants
+### Build Constants ⚙️
 
-`__DEV__` and `__INCREMENT__` are injected by ESBuild's `define` at build time
+`__DEV__` and `__INCREMENT__` are injected by `ESBuild`'s `define` at build time
 (`Source/Configuration/ESBuild/Target.ts`) - no runtime config parsing for
 either. `BASE_REMOTE` is resolved at runtime in `Source/Worker.ts`, not
 build-injected:
 
-| Constant        | Source                                                                                | Description                                                |
-| --------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `__DEV__`       | ESBuild `define`; `true` unless `Worker.ts`'s `On` (dev/`TAURI_ENV_DEBUG`) is `false` | Toggle verbose logging                                     |
-| `__INCREMENT__` | ESBuild `define`; a `ulid()` prefixed with `DEVELOPMENT-`/`PRODUCTION-`               | Cache key suffix for cache cut-over                        |
-| `BASE_REMOTE`   | Runtime: `BASE_REMOTE` query param or `self.location.origin`                          | Remote base URL used for logging and message-origin checks |
+| Constant | Source | Description |
+| -------- | -------- | -------- |
+| `__DEV__` | `ESBuild` `define`; `true` unless `Worker.ts`'s `On` (dev/`TAURI_ENV_DEBUG`) is `false` | Toggle verbose logging |
+| `__INCREMENT__` | `ESBuild` `define`; a `ulid()` prefixed with `DEVELOPMENT-`/`PRODUCTION-` | Cache key suffix for cache cut-over |
+| `BASE_REMOTE` | Runtime: `BASE_REMOTE` query param or `self.location.origin` | Remote base URL used for logging and message-origin checks |
 
 ---
 
-## Security&#x2001;🔒
+## Security 🛡️
 
-Worker enforces security at multiple layers:
+`Worker` enforces security at multiple layers:
 
-| Layer                         | Mechanism                                                                                                                                                                     |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Layer | Mechanism |
+| -------- | -------- |
 | **Trusted Types Enforcement** | `WorkerApplication` policy validates service worker script URLs against a regex allowlist before `navigator.serviceWorker.register`, preventing DOM XSS via injected SW paths |
-| **Auth Token Encryption**     | Authentication tokens stored in cache are encrypted at rest - no page-level script can read them                                                                              |
-| **CSP Compatibility**         | Full `Content-Security-Policy` compliance with `Trusted Types` integration; script sources are validated at registration time                                                 |
-| **Scope Isolation**           | Caching strategies are scoped to `/Application` and `/Static/Application/*`; cross-origin requests pass through untouched                                                     |
-| **Build-Time Sealing**        | Environment variables and API keys are injected at build time via ESBuild define constants; no runtime config parsing or dynamic script loading                               |
+| **Auth Token Encryption** | Authentication tokens stored in cache are encrypted at rest - no page-level script can read them |
+| **CSP Compatibility** | Full `Content-Security-Policy` compliance with `Trusted Types` integration; script sources are validated at registration time |
+| **Scope Isolation** | Caching strategies are scoped to `/Application` and `/Static/Application/*`; cross-origin requests pass through untouched |
+| **Build-Time Sealing** | Environment variables and API keys are injected at build time via `ESBuild` define constants; no runtime config parsing or dynamic script loading |
+
+```mermaid
+graph LR
+    URL["SW script URL"]:::client --> POL["WorkerApplication<br/>regex allowlist"]:::sec
+    POL --> REG["navigator.serviceWorker.register"]:::worker
+    TOK["Auth tokens"]:::sec --> ENC["Encrypted at rest"]:::sec
+    CSP["Content-Security-Policy"]:::sec --> POL
+    SCOPE["Scope /Application"]:::worker --> PASS["Cross-origin pass-through"]:::client
+    classDef client fill:#cce8ff,stroke:#2980b9,stroke-width:2px,color:#003050;
+    classDef worker fill:#f0d0ff,stroke:#9b59b6,stroke-width:2px,color:#2c0050;
+    classDef sec fill:#d4f5d4,stroke:#27ae60,stroke-width:1px,color:#0a3a0a;
+```
 
 ---
 
-## Compatibility
+## Compatibility 🔌
 
-Worker&#x2001;🍩 is designed to be compatible with:
+`Worker` is designed to be compatible with:
 
-| Target               | Integration                                                                                                                              |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Sky**&#x2001;🌌    | Registers the service worker via `navigator.serviceWorker.register`; defines `window._LOAD_CSS_WORKER` and `window._WORKER` globals      |
-| **Wind**&#x2001;🍃   | Indirect dependency - workbench JS served through Sky passes through Worker's caching strategies; CSP headers propagate to SW context    |
-| **Cocoon**&#x2001;🦋 | Extension-host page loads run inside the same WebView; Worker caches both app shell and extension assets under `/Application` scope      |
-| **Tauri WebView**    | Runs as a standard service worker in the Tauri WebView context; uses `Cache Storage` API and `fetch` API exclusively (no `Node.js` APIs) |
+| Target | Integration |
+| -------- | -------- |
+| `Sky` | Registers the service worker via `navigator.serviceWorker.register`; defines `window._LOAD_CSS_WORKER` and `window._WORKER` globals |
+| `Wind` | Indirect dependency - workbench JS served through Sky passes through Worker's caching strategies; CSP headers propagate to SW context |
+| `Cocoon` | Extension-host page loads run inside the same WebView; Worker caches both app shell and extension assets under `/Application` scope |
+| `Tauri WebView` | Runs as a standard service worker in the `Tauri` WebView context; uses `Cache Storage` API and `fetch` API exclusively (no `Node.js` APIs) |
 
 ---
 
-## API Reference
+## API Reference 📖
 
-- [Worker.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker.ts)
+- [`Worker.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker.ts)
     - Main service worker with caching strategies and CSS import interception
-- [Policy.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Policy.ts)
+- [`Policy.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Policy.ts)
     - `Trusted Types` policy for secure script URL validation
-- [Register.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Register.ts)
+- [`Register.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/Register.ts)
     - Service worker registration, update detection, and activation
-- [Load.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/CSS/Load.ts)
+- [`Load.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Worker/CSS/Load.ts)
     - Client-side CSS loader function (`window._LOAD_CSS_WORKER`)
-- [Bridge.ts](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Telemetry/Bridge.ts)
+- [`Bridge.ts`](https://github.com/CodeEditorLand/Worker/tree/Current/Source/Telemetry/Bridge.ts)
     - `PostHog` + `OTLP` telemetry bridge from service worker context
 
 ---
 
-## Related Documentation
-
-- [Architecture Overview](https://Editor.Land/Doc/architecture) - Land system
-  architecture
-- [Land Documentation](../../Documentation/GitHub/README.md) - Complete
-  documentation index
-- [Sky&#x2001;🌌](https://github.com/CodeEditorLand/Sky) - UI component layer
-  that registers Worker
-- [Wind&#x2001;🍃](https://github.com/CodeEditorLand/Wind) - Service layer
-  (correlated frontend element)
-- [Cocoon&#x2001;🦋](https://github.com/CodeEditorLand/Cocoon) -
-  `Node.js`/`Effect-TS` extension host (correlated frontend element)
-- [CHANGELOG.md](https://github.com/CodeEditorLand/Worker/tree/Current/CHANGELOG.md)
-    - Release history for **Worker**&#x2001;🍩
-
----
-
-## License&#x2001;⚖️
+## License 🛡️
 
 This project is released into the public domain under the **Creative Commons CC0
 Universal** license. You are free to use, modify, distribute, and build upon
@@ -464,7 +531,7 @@ file.
 
 ---
 
-## Changelog&#x2001;📜
+## Changelog 📦
 
 Stay updated with our progress! See
 [`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/CHANGELOG.md)
@@ -472,11 +539,11 @@ for a history of changes.
 
 ---
 
-## Funding & Acknowledgements&#x2001;🙏🏻
+## Funding & Acknowledgements 🔌
 
-**Land**&#x2001;🏞️ is proud to be an open-source endeavor. Our journey is
-significantly supported by the organizations and projects that believe in the
-future of open-source software.
+`Land` is proud to be an open-source endeavor. Our journey is significantly
+supported by the organizations and projects that believe in the future of
+open-source software.
 
 This project is funded through
 [NGI0 Commons Fund](https://NLnet.NL/commonsfund), a fund established by
@@ -534,3 +601,25 @@ This project is funded through
 		</tr>
 	</tbody>
 </table>
+
+---
+
+## Related Documentation 📖
+
+- [Architecture Overview](https://Editor.Land/Doc/architecture) - `Land` system
+  architecture
+- [`Land` Documentation](https://github.com/CodeEditorLand/Land/tree/Current/Documentation/GitHub/README.md) - Complete
+  documentation index
+- [`Sky`](https://github.com/CodeEditorLand/Sky) - UI component layer that
+  registers `Worker`
+- [`Wind`](https://github.com/CodeEditorLand/Wind) - Service layer
+  (correlated frontend element)
+- [`Cocoon`](https://github.com/CodeEditorLand/Cocoon) -
+  `Node.js`/`Effect-TS` extension host (correlated frontend element)
+- [`CHANGELOG.md`](https://github.com/CodeEditorLand/Worker/tree/Current/CHANGELOG.md)
+    - Release history for `Worker`
+
+**Project Maintainers:** Source Open
+([Source/Open@Editor.Land](mailto:Source/Open@Editor.Land)) |
+[GitHub Repository](https://github.com/CodeEditorLand/Worker) |
+[Report an Issue](https://github.com/CodeEditorLand/Worker/issues)
