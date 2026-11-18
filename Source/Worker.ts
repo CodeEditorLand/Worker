@@ -261,10 +261,35 @@ self.addEventListener("fetch", (Event) => {
 								`Navigation request fetched from network: ${Path}`,
 							);
 
-						(await caches.open(CACHE_CORE)).put(
-							Request,
+						// Keep the service worker alive until the cache write settles,
+						// but hand the network response back immediately so navigation
+						// is never delayed by a slow or failing put. This is the same
+						// waitUntil-inside-respondWith pattern used for on-demand caching.
+						Event.waitUntil(
+							(async () => {
+								if (typeof caches === "undefined") {
+									// caches API unavailable: warn visibly, degrade to
+									// the already-fetched network response (no throw).
+									console.warn(
+										`[Worker ${INCREMENT}] Navigation cache put skipped: caches API unavailable for ${Request.url} (cache ${CACHE_CORE}).`,
+									);
+									return;
+								}
 
-							_Response.clone(),
+								try {
+									const Cache = await caches.open(CACHE_CORE);
+
+									await Cache.put(Request, _Response.clone());
+								} catch (_Error) {
+									// Missing/closed cache, quota error or a rejected
+									// put must warn and degrade, never throw from the
+									// worker. The network response is still returned.
+									console.warn(
+										`[Worker ${INCREMENT}] Navigation cache put failed for ${Request.url} in cache ${CACHE_CORE}; serving the network response anyway.`,
+										_Error,
+									);
+								}
+							})(),
 						);
 
 						return _Response;

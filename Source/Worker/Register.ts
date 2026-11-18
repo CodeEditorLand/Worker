@@ -61,23 +61,59 @@ void ((): void => {
 	{
 		const RegisteredKey = "WorkerRegistered";
 
+		let UpdateCheckInFlight = false;
+
 		const CheckForUpdate = async (
 			Registration: ServiceWorkerRegistration,
-		) => {
-			const Update = await Registration.update();
+		): Promise<void> => {
+			// Defensive: a missing registration cannot be checked.
+			if (!Registration) {
+				__DEV__ && WarnLog("Update check skipped: no registration supplied.");
 
-			__DEV__ &&
-				Log(
-					"Service Worker update check:",
+				return;
+			}
 
-					Update ? "Update found" : "Up to date",
-				);
-
-			if (Update) {
+			// Defensive: browsers without update() cannot force a re-fetch.
+			if (typeof Registration.update !== "function") {
 				__DEV__ &&
-					Log(
-						"New service worker version detected, will refresh on next activation",
-					);
+					WarnLog("Update check skipped: update() is not supported here.");
+
+				return;
+			}
+
+			// Defensive: a check already in flight must not register a second
+			// listener or issue a competing update() job.
+			if (UpdateCheckInFlight) {
+				__DEV__ && WarnLog("Update check already in flight; skipping.");
+
+				return;
+			}
+
+			UpdateCheckInFlight = true;
+
+			// `update()` resolves to the registration object itself, never to a
+			// boolean, so its resolved value cannot indicate whether an update
+			// exists. The browser signal for a real update is `updatefound`, fired
+			// only when a new worker actually starts installing. Attach it before
+			// forcing the re-fetch so the event cannot be missed.
+			const OnUpdateFound = () => {
+				__DEV__ && Log("Update found");
+
+				Registration.removeEventListener("updatefound", OnUpdateFound);
+			};
+
+			Registration.addEventListener("updatefound", OnUpdateFound);
+
+			try {
+				await Registration.update();
+
+				__DEV__ &&
+					Log("Service Worker update check finished (no update event yet).");
+			} catch (_Error) {
+				__DEV__ &&
+					WarnLog("Service Worker update check failed:", _Error);
+			} finally {
+				UpdateCheckInFlight = false;
 			}
 		};
 
@@ -195,7 +231,18 @@ void ((): void => {
 					await navigator.serviceWorker.getRegistration(Scope);
 
 				if (UpdateRegistration) {
-					CheckForUpdate(UpdateRegistration);
+					// Handle the promise explicitly. CheckForUpdate swallows its
+					// own failures, but guard against any unexpected throw so the
+					// call at this site can never become an unhandled rejection.
+					CheckForUpdate(UpdateRegistration).catch((_Error) => {
+						__DEV__ &&
+							WarnLog("Unexpected error during update check:", _Error);
+					});
+				} else {
+					__DEV__ &&
+						WarnLog(
+							"Update check skipped: no registration found for scope.",
+						);
 				}
 
 				if (!InitiallyControlled && !Controlled) {
